@@ -2,8 +2,26 @@ services:
   - type: web
     name: sawac-telegram-bot
     env: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
-    plan: free
-    healthCheckPath: /
-    autoDeploy: true 
+    healthCheckPath: /health
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        value: 8274836874:AAHXKZsTgilIxSh34IdRx1yy-m55aQTAINI
+      - key: TELEGRAM_GROUP_ID
+        value: YOUR_GROUP_ID
+      - key: GITHUB_TOKEN
+        value: YOUR_GITHUB_TOKEN
+      - key: GITHUB_REPO
+        value: AGBKK/sawac-web
+      - key: TESTING_EMAIL
+        value: info@sawac.io
+      - key: TESTING_GROUP_LINK
+        value: https://t.me/SawacTesting
+      - key: SAWAC_TOKEN_ADDRESS
+        value: 0xA9B266b3cee8691b0b3ecE2FdEF7e89C4e0d34F3
+      - key: USDT_TOKEN_ADDRESS
+        value: 0x101a13505A7ae2d2C72AC74a4c26732100852455
+      - key: LOG_LEVEL
+        value: info 
