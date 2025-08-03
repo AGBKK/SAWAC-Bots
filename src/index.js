@@ -11,12 +11,36 @@ if (!token) {
   process.exit(1);
 }
 
-// Create bot instance with error handling
-const bot = new TelegramBot(token, { polling: true });
+// Create bot instance with error handling and webhook disabled
+const bot = new TelegramBot(token, { 
+  polling: true,
+  webHook: false // Ensure webhook is disabled
+});
 
-// Error handling
+// Error handling with retry logic
+let retryCount = 0;
+const maxRetries = 3;
+
 bot.on('polling_error', (error) => {
   console.error('❌ Polling error:', error.message);
+  
+  if (error.message.includes('409 Conflict') || error.message.includes('terminated by other getUpdates')) {
+    console.log('🔄 Multiple bot instances detected. Waiting 30 seconds before retry...');
+    retryCount++;
+    
+    if (retryCount <= maxRetries) {
+      setTimeout(() => {
+        console.log(`🔄 Retry attempt ${retryCount}/${maxRetries}`);
+        bot.stopPolling();
+        setTimeout(() => {
+          bot.startPolling();
+        }, 5000);
+      }, 30000);
+    } else {
+      console.error('❌ Max retries reached. Stopping bot.');
+      process.exit(1);
+    }
+  }
 });
 
 bot.on('error', (error) => {
@@ -382,3 +406,13 @@ console.log('🚀 SAWAC Telegram Bot is running...');
 console.log('📱 Bot is ready to receive messages');
 console.log(`🔑 Bot token: ${token ? '✅ Set' : '❌ Missing'}`);
 console.log('📊 Logs will be displayed in console');
+
+// Keep the process alive
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error.message);
+  console.error('Stack:', error.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
