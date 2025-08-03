@@ -379,7 +379,7 @@ async function handleMessage(msg) {
   console.log(`✅ Default response sent to ${from.first_name}`);
 }
 
-// Handle wallet address with privacy protection and token management
+// Handle wallet address with privacy protection
 async function handleWalletAddress(chatId, from, address) {
   // Check if this is a group chat - if so, warn about privacy
   const isGroupChat = chatId < 0;
@@ -403,109 +403,25 @@ I noticed you shared your wallet address in the group chat. For your privacy and
     return;
   }
 
-  // For direct messages, process with token management
-  const data = loadRequests();
-  const timestamp = new Date().toISOString();
-  const requestId = `req_${Date.now()}_${from.id}`;
-  
-  // Check for duplicates
-  if (data.users[from.id]) {
-    const existingRequest = data.users[from.id];
-    const responseText = `❌ **Duplicate Request**
+  // For direct messages, process normally
+  const responseText = `✅ **Wallet Address Received**
 
-You have already requested tokens. Your request status: **${existingRequest.status}**
-
-**Request Details:**
-• Wallet: \`${existingRequest.walletAddress}\`
-• Submitted: ${new Date(existingRequest.timestamp).toLocaleString()}
-
-If you need to update your wallet address, please contact the admin.`;
-
-    await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
-    return;
-  }
-  
-  if (data.wallets[address.toLowerCase()]) {
-    const responseText = `❌ **Wallet Already Used**
-
-This wallet address has already been used for a token request.
-
-Please use a different wallet address or contact the admin if you need assistance.`;
-
-    await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
-    return;
-  }
-  
-  // Validate wallet address format
-  if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
-    const responseText = `❌ **Invalid Wallet Address**
-
-Please provide a valid BSC Testnet wallet address (should start with 0x and be 42 characters long).
-
-Example: \`0x1234567890123456789012345678901234567890\``;
-
-    await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
-    return;
-  }
-  
-  // Record the request
-  const request = {
-    requestId,
-    userId: from.id,
-    username: from.username,
-    firstName: from.first_name,
-    walletAddress: address,
-    timestamp,
-    status: 'pending'
-  };
-  
-  data.users[from.id] = request;
-  data.wallets[address.toLowerCase()] = request;
-  data.requests[requestId] = request;
-  
-  saveRequests(data);
-  
-  // Send confirmation to user
-  const responseText = `✅ **Token Request Submitted**
-
-**Wallet Address:** \`${address}\`
-**Request ID:** \`${requestId}\`
+Address: \`${address}\`
 
 **Next Steps:**
-1. Your request has been submitted for approval
-2. You will receive tokens within 24 hours after approval
-3. Check your wallet for 1000 SAWAC + 100 USDT tokens
+1. I'll forward this to the team
+2. Tokens will be distributed within 24 hours
+3. You'll receive a confirmation message
 
 **Testing Instructions:**
 • Add BSC Testnet to your wallet
-• Get test BNB from faucet
+• Check for 1000 SAWAC + 100 USDT tokens
 • Start testing at https://sawac.io
 
 **Need help?** Email: info@sawac.io`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
-  console.log(`✅ Token request recorded from ${from.first_name}: ${address}`);
-  
-  // Notify admin
-  if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
-    const adminNotification = `🆕 **New Token Request**
-
-**User:** ${from.first_name} (@${from.username || 'no username'})
-**Wallet:** \`${address}\`
-**Request ID:** \`${requestId}\`
-**Time:** ${new Date(timestamp).toLocaleString()}
-
-**Actions:**
-• Use /pending to see all pending requests
-• Use /approve_[requestId] to approve
-• Use /reject_[requestId] to reject`;
-
-    try {
-      await bot.sendMessage(ADMIN_USER_ID, adminNotification, { parse_mode: 'Markdown' });
-    } catch (error) {
-      console.error('Failed to notify admin:', error.message);
-    }
-  }
+  console.log(`✅ Wallet address received from ${from.first_name}: ${address}`);
 }
 
 // Handle bug description
@@ -543,15 +459,3 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
-const fs = require("fs");
-const path = require("path");
-// Token management functions
-const REQUESTS_FILE = path.join(__dirname, "../data/token-requests.json");
-const ADMIN_USER_ID = process.env.ADMIN_USER_ID || "YOUR_TELEGRAM_USER_ID";
-function isAdmin(userId) { return userId.toString() === ADMIN_USER_ID.toString(); }
-function loadRequests() { try { if (fs.existsSync(REQUESTS_FILE)) { return JSON.parse(fs.readFileSync(REQUESTS_FILE, "utf8")); } } catch (error) { console.error("Error loading requests:", error); } return { requests: {}, users: {}, wallets: {}, approved: {}, rejected: {} }; }
-function saveRequests(data) { try { fs.writeFileSync(REQUESTS_FILE, JSON.stringify(data, null, 2)); } catch (error) { console.error("Error saving requests:", error); } }
-// Admin functions
-async function showPendingRequests(chatId) { const data = loadRequests(); const pending = Object.values(data.requests).filter(req => req.status === "pending"); if (pending.length === 0) { await bot.sendMessage(chatId, "📋 No pending requests."); return; } let message = `📋 **Pending Requests (${pending.length}):**\n\n`; pending.forEach((req, index) => { message += `${index + 1}. **${req.firstName}** (@${req.username || "no username"})\n   Wallet: \`${req.walletAddress}\`\n   ID: \`${req.requestId}\`\n   Time: ${new Date(req.timestamp).toLocaleString()}\n\n`; }); message += "**Commands:**\n/approve_[requestId] - Approve request\n/reject_[requestId] - Reject request"; await bot.sendMessage(chatId, message, { parse_mode: "Markdown" }); }
-async function showApprovedRequests(chatId) { const data = loadRequests(); const approved = Object.values(data.approved); if (approved.length === 0) { await bot.sendMessage(chatId, "✅ No approved requests."); return; } let message = `✅ **Approved Requests (${approved.length}):**\n\n`; approved.forEach((req, index) => { message += `${index + 1}. **${req.firstName}** (@${req.username || "no username"})\n   Wallet: \`${req.walletAddress}\`\n   Approved: ${new Date(req.approvedAt).toLocaleString()}\n\n`; }); await bot.sendMessage(chatId, message, { parse_mode: "Markdown" }); }
-async function generateDistributionScript(chatId) { const data = loadRequests(); const approved = Object.values(data.approved); if (approved.length === 0) { await bot.sendMessage(chatId, "❌ No approved requests to distribute."); return; } const addresses = approved.map(req => req.walletAddress); const scriptContent = `// Generated distribution script\nconst testers = [\n${addresses.map(addr => `  "${addr}",`).join("\n")}\n];`; const scriptPath = path.join(__dirname, "../generated-distribution.js"); fs.writeFileSync(scriptPath, scriptContent); await bot.sendMessage(chatId, `✅ Distribution script generated!\n\n📁 File: generated-distribution.js\n👥 Addresses: ${addresses.length}\n\n**To run:**\n1. Copy generated-distribution.js to sawac-token/scripts/\n2. Run: npx hardhat run scripts/generated-distribution.js --network bscTestnet`, { parse_mode: "Markdown" }); }
