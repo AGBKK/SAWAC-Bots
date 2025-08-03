@@ -1,6 +1,5 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const http = require('http');
 
 console.log('🤖 SAWAC Bot starting...');
 
@@ -14,26 +13,6 @@ if (!token) {
 
 // Create bot instance with error handling
 const bot = new TelegramBot(token, { polling: true });
-
-// Health check server for Railway
-const server = http.createServer((req, res) => {
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ 
-      status: 'healthy', 
-      timestamp: new Date().toISOString(),
-      bot: 'SAWAC Telegram Bot'
-    }));
-  } else {
-    res.writeHead(404);
-    res.end('Not Found');
-  }
-});
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  console.log(`🏥 Health check server running on port ${PORT}`);
-});
 
 // Error handling
 bot.on('polling_error', (error) => {
