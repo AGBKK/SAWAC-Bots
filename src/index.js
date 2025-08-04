@@ -131,14 +131,6 @@ async function handleCommand(msg) {
       await sendSetupInstructions(chatId);
       break;
       
-    case '/rewards':
-      await sendRewardsInfo(chatId);
-      break;
-      
-    case '/privacy':
-      await sendPrivacyInfo(chatId);
-      break;
-      
     case '/pending':
       if (isAdmin(from.id)) {
         await showPendingRequests(chatId);
@@ -177,8 +169,9 @@ Hi ${from.first_name}! 👋
 ## 🏆 **TESTING REWARDS PROGRAM**
 
 ### 🪙 **Immediate Rewards:**
-• **1000 SAWAC tokens** + **100 USDT** (testnet)
+• **1000 SAWAC tokens** + **100 USDT** (testnet for testing)
 • **Free testing environment** - no real money needed
+• **Eligibility for mainnet rewards** - the real value!
 
 ### 🎁 **Quality Report Rewards:**
 • **Mainnet SAWAC airdrop** for detailed bug reports
@@ -233,7 +226,6 @@ async function sendHelpMessage(chatId) {
 
 /start - Welcome message and setup guide
 /help - Show this help message
-/rewards - Detailed information about testing rewards
 /tokens - Request test tokens (SAWAC + USDT)
 /setup - BSC Testnet wallet setup instructions
 /report - Report a bug or issue
@@ -259,10 +251,10 @@ async function handleTokenRequest(chatId, from) {
 Hi ${from.first_name}! 
 
 ## 🎁 **What You'll Get:**
-• **1000 SAWAC tokens** (testnet)
-• **100 USDT tokens** (testnet)
+• **1000 SAWAC tokens** (testnet for testing)
+• **100 USDT tokens** (testnet for testing)
 • **Testing instructions** and guidelines
-• **Eligibility for mainnet rewards**
+• **Eligibility for mainnet rewards** - the real value!
 
 ## 📋 **To Get Started:**
 1. **Provide your wallet address** (BSC Testnet)
@@ -278,7 +270,7 @@ Hi ${from.first_name}!
 
 **Please reply with your wallet address** (0x...)
 
-**Note:** These are testnet tokens with no real value, used only for testing purposes. Real rewards come from quality testing reports!`;
+**Note:** These are testnet tokens with no real value, used only for testing purposes. Real rewards come from quality testing reports and mainnet SAWAC airdrops!`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Token request info sent to ${from.first_name}`);
@@ -391,84 +383,6 @@ Once set up, use /tokens to request your test tokens! 🚀`;
 
   await bot.sendMessage(chatId, setupText, { parse_mode: "Markdown" });
   console.log("✅ Setup instructions sent");
-}
-
-// Rewards info
-async function sendRewardsInfo(chatId) {
-  const rewardsText = `🏆 **SAWAC Community Testing Rewards Program**
-
-## 🪙 **Immediate Rewards:**
-• **1000 SAWAC tokens** (testnet) + **100 USDT** (testnet)
-• **Free testing environment** - no real money needed
-
-## 🎁 **Quality Report Rewards:**
-• **Mainnet SAWAC airdrop** for detailed bug reports
-• **"SAWAC Pioneer" NFT** for top 10 testers
-• **Community leadership** opportunities
-• **Early access** to new features
-• **Whitelist priority** for future token sales
-• **Exclusive Discord role** and community access
-
-## 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet
-• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT
-• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status
-• **Platinum:** 10+ quality reports = 5000 SAWAC + Early Access
-
-## 📋 **How to Earn Rewards:**
-1. **Submit a detailed bug report** via /report command or GitHub Issues.
-2. **Quality reports** will be reviewed by the development team.
-3. **Approved reports** will earn you rewards based on the tier.
-
-## 🔒 **Privacy Protection:**
-• Wallet addresses are processed privately
-• Sensitive data is not stored in group chat
-• Use direct messages for personal info
-
-## 🚀 **Quick Start:**
-1. Use /setup for wallet instructions
-2. Use /tokens to request test tokens
-3. Start testing at https://sawac.io
-4. Report findings via /report or GitHub
-
-**Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
-**Email Support:** info@sawac.io
-
-**Ready to earn rewards? Let's make SAWAC better together! 🚀**`;
-
-  await bot.sendMessage(chatId, rewardsText, { parse_mode: 'Markdown' });
-  console.log('✅ Rewards info sent');
-}
-
-// Privacy info
-async function sendPrivacyInfo(chatId) {
-  const privacyText = `🔒 **Privacy Protection**
-
-**SAWAC Community Testing** is committed to protecting your privacy.
-
-• **Wallet Addresses:**
-  - Your wallet address is processed privately to verify your eligibility for rewards.
-  - This data is not stored in the group chat or shared with anyone.
-  - It is securely encrypted and only used for the purpose of reward distribution.
-
-• **Sensitive Data:**
-  - Personal information, such as your Telegram username, is not collected.
-  - All interactions are conducted via direct messages to ensure your privacy.
-  - If you need to contact the admin, you can do so via the /setup command.
-
-• **Direct Messages:**
-  - For any questions, bug reports, or support, please use direct messages.
-  - This ensures your communication is private and secure.
-
-• **Data Retention:**
-  - Token request data (wallet address, status, timestamp) is stored for 24 hours.
-  - Approved requests are permanently stored for reward distribution.
-  - Rejected requests are also stored for 24 hours to prevent abuse.
-
-**Need Help?** Email: info@sawac.io`;
-
-  await bot.sendMessage(chatId, privacyText, { parse_mode: 'Markdown' });
-  console.log('✅ Privacy info sent');
 }
 
 // Message handler (non-commands)
@@ -633,31 +547,8 @@ Example: \`0x1234567890123456789012345678901234567890\``;
   }
 }
 
-// Handle bug description with privacy protection
+// Handle bug description
 async function handleBugDescription(chatId, from, description) {
-  // Check if this is a group chat and the report is detailed
-  const isGroupChat = chatId < 0;
-  const isDetailedReport = description.length > 100;
-  
-  if (isGroupChat && isDetailedReport) {
-    const privacyWarning = `⚠️ **Privacy Notice**
-
-I noticed you shared a detailed bug report in the group chat. For better privacy and security:
-
-**🔒 Recommended:**
-• Send detailed reports via **direct message** to me
-• This keeps sensitive information private from other group members
-• I'll process it the same way
-
-**Brief summary:** ${description.substring(0, 100)}...
-
-**To continue privately:** Send me a direct message with your full report.`;
-
-    await bot.sendMessage(chatId, privacyWarning, { parse_mode: 'Markdown' });
-    console.log(`⚠️ Privacy warning sent to ${from.first_name} for detailed report in group chat`);
-    return;
-  }
-
   const responseText = `🐛 **Bug Report Received**
 
 **From:** ${from.first_name} (@${from.username || 'no username'})
@@ -674,27 +565,6 @@ Thank you for helping improve SAWAC! 🚀`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Bug report received from ${from.first_name}: ${description.substring(0, 50)}...`);
-  
-  // Notify admin about bug report
-  if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
-    const bugReportNotification = `🐛 **New Bug Report**
-
-**User:** ${from.first_name} (@${from.username || 'no username'})
-**Chat Type:** ${isGroupChat ? 'Group Chat' : 'Direct Message'}
-**Description:** ${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
-**Time:** ${new Date().toLocaleString()}
-
-**Actions:**
-• Review the full report
-• Contact user if more details needed
-• Create GitHub issue if needed`;
-
-    try {
-      await bot.sendMessage(ADMIN_USER_ID, bugReportNotification, { parse_mode: 'Markdown' });
-    } catch (error) {
-      console.error('Failed to notify admin about bug report:', error.message);
-    }
-  }
 }
 
 // Admin functions
@@ -759,38 +629,4 @@ ${addresses.map(addr => `  "${addr}",`).join('\n')}
 console.log('🚀 SAWAC Telegram Bot is running...');
 console.log('📱 Bot is ready to receive messages');
 console.log(`🔑 Bot token: ${token ? '✅ Set' : '❌ Missing'}`);
-console.log('📊 Logs will be displayed in console');
-
-// Simple HTTP server for Railway health checks
-const http = require('http');
-const port = process.env.PORT || 3000;
-
-const server = http.createServer((req, res) => {
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      status: 'healthy',
-      bot: 'running',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime()
-    }));
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('SAWAC Telegram Bot is running! 🚀');
-  }
-});
-
-server.listen(port, () => {
-  console.log(`🌐 HTTP server listening on port ${port}`);
-  console.log(`🏥 Health check available at http://localhost:${port}/health`);
-});
-
-// Keep the process alive
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error.message);
-  console.error('Stack:', error.stack);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-}); 
+console.log('📊 Logs will be displayed in console'); 
