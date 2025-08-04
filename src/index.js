@@ -127,6 +127,10 @@ async function handleCommand(msg) {
       await sendSetupInstructions(chatId);
       break;
       
+    case '/rewards':
+      await sendRewardsInfo(chatId);
+      break;
+      
     case '/pending':
       if (isAdmin(from.id)) {
         await showPendingRequests(chatId);
@@ -162,20 +166,32 @@ async function sendWelcomeMessage(chatId, from) {
 
 Hi ${from.first_name}! 👋
 
-## 🎁 **Testing Rewards:**
-• **1000 SAWAC + 100 USDT** test tokens
-• **Mainnet airdrop** for quality reports  
-• **"SAWAC Pioneer" NFT** for top testers
-• **Community recognition** and leadership
+## 🏆 **TESTING REWARDS PROGRAM**
+
+### 🪙 **Immediate Rewards:**
+• **1000 SAWAC tokens** + **100 USDT** (testnet)
+• **Free testing environment** - no real money needed
+
+### 🎁 **Quality Report Rewards:**
+• **Mainnet SAWAC airdrop** for detailed bug reports
+• **"SAWAC Pioneer" NFT** for top 10 testers
+• **Community leadership** opportunities
+• **Early access** to new features
+
+### 📈 **Reward Tiers:**
+• **Bronze:** 1-2 quality reports = 100 SAWAC mainnet
+• **Silver:** 3-5 quality reports = 250 SAWAC + Pioneer NFT
+• **Gold:** 5+ quality reports = 500 SAWAC + VIP status
 
 ## 📋 **What to Test:**
 • Wallet connection & token transactions
 • Mobile experience & UI/UX
 • Performance & edge cases
+• Cross-browser compatibility
 
 ## 📊 **How to Report:**
 • **Quick:** Use /report command
-• **Detailed:** GitHub Issues
+• **Detailed:** GitHub Issues with screenshots
 • **Quality reports = better rewards!**
 
 ## 🔒 **Privacy Protection:**
@@ -192,7 +208,7 @@ Hi ${from.first_name}! 👋
 **Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
 **Email Support:** info@sawac.io
 
-Let's make SAWAC better together! 🚀`;
+**Ready to earn rewards? Let's make SAWAC better together! 🚀**`;
 
   await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
   console.log(`✅ Welcome message sent to ${from.first_name}`);
@@ -204,6 +220,7 @@ async function sendHelpMessage(chatId) {
 
 /start - Welcome message and setup guide
 /help - Show this help message
+/rewards - Detailed information about testing rewards
 /tokens - Request test tokens (SAWAC + USDT)
 /setup - BSC Testnet wallet setup instructions
 /report - Report a bug or issue
@@ -228,20 +245,26 @@ async function handleTokenRequest(chatId, from) {
 
 Hi ${from.first_name}! 
 
-To get test tokens, please:
+## 🎁 **What You'll Get:**
+• **1000 SAWAC tokens** (testnet)
+• **100 USDT tokens** (testnet)
+• **Testing instructions** and guidelines
+• **Eligibility for mainnet rewards**
 
+## 📋 **To Get Started:**
 1. **Provide your wallet address** (BSC Testnet)
 2. **Wait for approval** (usually within 24 hours)
 3. **Check your wallet** for tokens
+4. **Start testing** at https://sawac.io
 
-**You'll receive:**
-• 1000 SAWAC tokens
-• 100 USDT tokens
-• Instructions for testing
+## 🏆 **Earn More Rewards:**
+• **Quality bug reports** = Mainnet SAWAC airdrop
+• **Detailed feedback** = Pioneer NFT eligibility
+• **Active participation** = Community leadership
 
 **Please reply with your wallet address** (0x...)
 
-**Note:** These are testnet tokens with no real value, used only for testing purposes.`;
+**Note:** These are testnet tokens with no real value, used only for testing purposes. Real rewards come from quality testing reports!`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Token request info sent to ${from.first_name}`);
@@ -354,6 +377,50 @@ Once set up, use /tokens to request your test tokens! 🚀`;
 
   await bot.sendMessage(chatId, setupText, { parse_mode: "Markdown" });
   console.log("✅ Setup instructions sent");
+}
+
+// Rewards info
+async function sendRewardsInfo(chatId) {
+  const rewardsText = `🏆 **SAWAC Community Testing Rewards Program**
+
+## 🪙 **Immediate Rewards:**
+• **1000 SAWAC tokens** (testnet) + **100 USDT** (testnet)
+• **Free testing environment** - no real money needed
+
+## 🎁 **Quality Report Rewards:**
+• **Mainnet SAWAC airdrop** for detailed bug reports
+• **"SAWAC Pioneer" NFT** for top 10 testers
+• **Community leadership** opportunities
+• **Early access** to new features
+
+## 📈 **Reward Tiers:**
+• **Bronze:** 1-2 quality reports = 100 SAWAC mainnet
+• **Silver:** 3-5 quality reports = 250 SAWAC + Pioneer NFT
+• **Gold:** 5+ quality reports = 500 SAWAC + VIP status
+
+## 📋 **How to Earn Rewards:**
+1. **Submit a detailed bug report** via /report command or GitHub Issues.
+2. **Quality reports** will be reviewed by the development team.
+3. **Approved reports** will earn you rewards based on the tier.
+
+## 🔒 **Privacy Protection:**
+• Wallet addresses are processed privately
+• Sensitive data is not stored in group chat
+• Use direct messages for personal info
+
+## 🚀 **Quick Start:**
+1. Use /setup for wallet instructions
+2. Use /tokens to request test tokens
+3. Start testing at https://sawac.io
+4. Report findings via /report or GitHub
+
+**Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
+**Email Support:** info@sawac.io
+
+**Ready to earn rewards? Let's make SAWAC better together! 🚀**`;
+
+  await bot.sendMessage(chatId, rewardsText, { parse_mode: 'Markdown' });
+  console.log('✅ Rewards info sent');
 }
 
 // Message handler (non-commands)
