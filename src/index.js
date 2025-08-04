@@ -174,14 +174,18 @@ Hi ${from.first_name}! 👋
 
 ### 🎁 **Quality Report Rewards:**
 • **Mainnet SAWAC airdrop** for detailed bug reports
+• **USDT rewards** for quality feedback
 • **"SAWAC Pioneer" NFT** for top 10 testers
 • **Community leadership** opportunities
 • **Early access** to new features
+• **Whitelist priority** for future token sales
+• **Exclusive Discord role** and community access
 
 ### 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 100 SAWAC mainnet
-• **Silver:** 3-5 quality reports = 250 SAWAC + Pioneer NFT
-• **Gold:** 5+ quality reports = 500 SAWAC + VIP status
+• **Bronze:** 1-2 quality reports = 250 SAWAC + 50 USDT mainnet
+• **Silver:** 3-5 quality reports = 500 SAWAC + 100 USDT + Pioneer NFT
+• **Gold:** 5+ quality reports = 1000 SAWAC + 200 USDT + VIP status
+• **Platinum:** 10+ quality reports = 2000 SAWAC + 500 USDT + Early Access
 
 ## 📋 **What to Test:**
 • Wallet connection & token transactions
@@ -208,7 +212,9 @@ Hi ${from.first_name}! 👋
 **Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
 **Email Support:** info@sawac.io
 
-**Ready to earn rewards? Let's make SAWAC better together! 🚀**`;
+**Ready to earn rewards? Let's make SAWAC better together! 🚀**
+
+**💡 Note:** Early testers often receive the highest rewards as projects grow. Quality testing now could lead to significant value as SAWAC develops!`;
 
   await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
   console.log(`✅ Welcome message sent to ${from.first_name}`);
@@ -389,14 +395,18 @@ async function sendRewardsInfo(chatId) {
 
 ## 🎁 **Quality Report Rewards:**
 • **Mainnet SAWAC airdrop** for detailed bug reports
+• **USDT rewards** for quality feedback
 • **"SAWAC Pioneer" NFT** for top 10 testers
 • **Community leadership** opportunities
 • **Early access** to new features
+• **Whitelist priority** for future token sales
+• **Exclusive Discord role** and community access
 
 ## 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 100 SAWAC mainnet
-• **Silver:** 3-5 quality reports = 250 SAWAC + Pioneer NFT
-• **Gold:** 5+ quality reports = 500 SAWAC + VIP status
+• **Bronze:** 1-2 quality reports = 250 SAWAC + 50 USDT mainnet
+• **Silver:** 3-5 quality reports = 500 SAWAC + 100 USDT + Pioneer NFT
+• **Gold:** 5+ quality reports = 1000 SAWAC + 200 USDT + VIP status
+• **Platinum:** 10+ quality reports = 2000 SAWAC + 500 USDT + Early Access
 
 ## 📋 **How to Earn Rewards:**
 1. **Submit a detailed bug report** via /report command or GitHub Issues.
