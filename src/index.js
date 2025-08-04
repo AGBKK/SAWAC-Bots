@@ -174,7 +174,6 @@ Hi ${from.first_name}! 👋
 
 ### 🎁 **Quality Report Rewards:**
 • **Mainnet SAWAC airdrop** for detailed bug reports
-• **USDT rewards** for quality feedback
 • **"SAWAC Pioneer" NFT** for top 10 testers
 • **Community leadership** opportunities
 • **Early access** to new features
@@ -182,10 +181,10 @@ Hi ${from.first_name}! 👋
 • **Exclusive Discord role** and community access
 
 ### 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 250 SAWAC + 50 USDT mainnet
-• **Silver:** 3-5 quality reports = 500 SAWAC + 100 USDT + Pioneer NFT
-• **Gold:** 5+ quality reports = 1000 SAWAC + 200 USDT + VIP status
-• **Platinum:** 10+ quality reports = 2000 SAWAC + 500 USDT + Early Access
+• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet
+• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT
+• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status
+• **Platinum:** 10+ quality reports = 5000 SAWAC + Early Access
 
 ## 📋 **What to Test:**
 • Wallet connection & token transactions
@@ -214,7 +213,7 @@ Hi ${from.first_name}! 👋
 
 **Ready to earn rewards? Let's make SAWAC better together! 🚀**
 
-**💡 Note:** Early testers often receive the highest rewards as projects grow. Quality testing now could lead to significant value as SAWAC develops!`;
+**💡 Note:** Current SAWAC value is ~$0.10 (50 USDT for 500 SAWAC), but this is only the first presale tier! Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
 
   await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
   console.log(`✅ Welcome message sent to ${from.first_name}`);
@@ -267,6 +266,7 @@ Hi ${from.first_name}!
 • **Quality bug reports** = Mainnet SAWAC airdrop
 • **Detailed feedback** = Pioneer NFT eligibility
 • **Active participation** = Community leadership
+• **Early access** to new features and token sales
 
 **Please reply with your wallet address** (0x...)
 
@@ -395,7 +395,6 @@ async function sendRewardsInfo(chatId) {
 
 ## 🎁 **Quality Report Rewards:**
 • **Mainnet SAWAC airdrop** for detailed bug reports
-• **USDT rewards** for quality feedback
 • **"SAWAC Pioneer" NFT** for top 10 testers
 • **Community leadership** opportunities
 • **Early access** to new features
@@ -403,10 +402,10 @@ async function sendRewardsInfo(chatId) {
 • **Exclusive Discord role** and community access
 
 ## 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 250 SAWAC + 50 USDT mainnet
-• **Silver:** 3-5 quality reports = 500 SAWAC + 100 USDT + Pioneer NFT
-• **Gold:** 5+ quality reports = 1000 SAWAC + 200 USDT + VIP status
-• **Platinum:** 10+ quality reports = 2000 SAWAC + 500 USDT + Early Access
+• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet
+• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT
+• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status
+• **Platinum:** 10+ quality reports = 5000 SAWAC + Early Access
 
 ## 📋 **How to Earn Rewards:**
 1. **Submit a detailed bug report** via /report command or GitHub Issues.
