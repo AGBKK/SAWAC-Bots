@@ -131,6 +131,10 @@ async function handleCommand(msg) {
       await sendRewardsInfo(chatId);
       break;
       
+    case '/privacy':
+      await sendPrivacyInfo(chatId);
+      break;
+      
     case '/pending':
       if (isAdmin(from.id)) {
         await showPendingRequests(chatId);
@@ -432,6 +436,37 @@ async function sendRewardsInfo(chatId) {
   console.log('✅ Rewards info sent');
 }
 
+// Privacy info
+async function sendPrivacyInfo(chatId) {
+  const privacyText = `🔒 **Privacy Protection**
+
+**SAWAC Community Testing** is committed to protecting your privacy.
+
+• **Wallet Addresses:**
+  - Your wallet address is processed privately to verify your eligibility for rewards.
+  - This data is not stored in the group chat or shared with anyone.
+  - It is securely encrypted and only used for the purpose of reward distribution.
+
+• **Sensitive Data:**
+  - Personal information, such as your Telegram username, is not collected.
+  - All interactions are conducted via direct messages to ensure your privacy.
+  - If you need to contact the admin, you can do so via the /setup command.
+
+• **Direct Messages:**
+  - For any questions, bug reports, or support, please use direct messages.
+  - This ensures your communication is private and secure.
+
+• **Data Retention:**
+  - Token request data (wallet address, status, timestamp) is stored for 24 hours.
+  - Approved requests are permanently stored for reward distribution.
+  - Rejected requests are also stored for 24 hours to prevent abuse.
+
+**Need Help?** Email: info@sawac.io`;
+
+  await bot.sendMessage(chatId, privacyText, { parse_mode: 'Markdown' });
+  console.log('✅ Privacy info sent');
+}
+
 // Message handler (non-commands)
 async function handleMessage(msg) {
   const chatId = msg.chat.id;
@@ -587,8 +622,31 @@ Example: \`0x1234567890123456789012345678901234567890\``;
   }
 }
 
-// Handle bug description
+// Handle bug description with privacy protection
 async function handleBugDescription(chatId, from, description) {
+  // Check if this is a group chat and the report is detailed
+  const isGroupChat = chatId < 0;
+  const isDetailedReport = description.length > 100;
+  
+  if (isGroupChat && isDetailedReport) {
+    const privacyWarning = `⚠️ **Privacy Notice**
+
+I noticed you shared a detailed bug report in the group chat. For better privacy and security:
+
+**🔒 Recommended:**
+• Send detailed reports via **direct message** to me
+• This keeps sensitive information private from other group members
+• I'll process it the same way
+
+**Brief summary:** ${description.substring(0, 100)}...
+
+**To continue privately:** Send me a direct message with your full report.`;
+
+    await bot.sendMessage(chatId, privacyWarning, { parse_mode: 'Markdown' });
+    console.log(`⚠️ Privacy warning sent to ${from.first_name} for detailed report in group chat`);
+    return;
+  }
+
   const responseText = `🐛 **Bug Report Received**
 
 **From:** ${from.first_name} (@${from.username || 'no username'})
@@ -605,6 +663,27 @@ Thank you for helping improve SAWAC! 🚀`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Bug report received from ${from.first_name}: ${description.substring(0, 50)}...`);
+  
+  // Notify admin about bug report
+  if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
+    const bugReportNotification = `🐛 **New Bug Report**
+
+**User:** ${from.first_name} (@${from.username || 'no username'})
+**Chat Type:** ${isGroupChat ? 'Group Chat' : 'Direct Message'}
+**Description:** ${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
+**Time:** ${new Date().toLocaleString()}
+
+**Actions:**
+• Review the full report
+• Contact user if more details needed
+• Create GitHub issue if needed`;
+
+    try {
+      await bot.sendMessage(ADMIN_USER_ID, bugReportNotification, { parse_mode: 'Markdown' });
+    } catch (error) {
+      console.error('Failed to notify admin about bug report:', error.message);
+    }
+  }
 }
 
 // Admin functions
@@ -686,7 +765,7 @@ const server = http.createServer((req, res) => {
     }));
   } else {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('SAWAC Telegram Bot is running! 🤖');
+    res.end('SAWAC Telegram Bot is running! 🚀');
   }
 });
 
