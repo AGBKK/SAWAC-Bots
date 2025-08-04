@@ -82,8 +82,12 @@ bot.on('message', async (msg) => {
     if (text.startsWith('/')) {
       await handleCommand(msg);
     } else {
+      // Check if this is a new user (first interaction)
+      const data = loadRequests();
+      const isNewUser = !data.users[from.id];
+      
       // Handle regular messages
-      await handleMessage(msg);
+      await handleMessage(msg, isNewUser);
     }
   } catch (error) {
     console.error('❌ Error handling message:', error.message);
@@ -468,7 +472,7 @@ async function sendPrivacyInfo(chatId) {
 }
 
 // Message handler (non-commands)
-async function handleMessage(msg) {
+async function handleMessage(msg, isNewUser) {
   const chatId = msg.chat.id;
   const text = msg.text;
   const from = msg.from;
@@ -487,7 +491,14 @@ async function handleMessage(msg) {
     return;
   }
   
-  // Default response
+  // Send welcome message to new users first
+  if (isNewUser) {
+    await sendWelcomeMessage(chatId, from);
+    console.log(`✅ Welcome message sent to new user ${from.first_name}`);
+    return;
+  }
+  
+  // Default response for existing users
   await bot.sendMessage(chatId, 
     '💡 Use /help to see available commands or /tokens to request test tokens!');
   console.log(`✅ Default response sent to ${from.first_name}`);
