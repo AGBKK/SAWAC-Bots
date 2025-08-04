@@ -155,6 +155,14 @@ async function handleCommand(msg) {
       }
       break;
       
+    case '/rewards':
+      await sendRewardsInfo(chatId);
+      break;
+      
+    case '/privacy':
+      await sendPrivacyInfo(chatId);
+      break;
+      
     default:
       await bot.sendMessage(chatId, '❓ Unknown command. Use /help to see available commands.');
   }
@@ -175,17 +183,17 @@ Hi ${from.first_name}! 👋
 
 ### 🎁 **Quality Report Rewards:**
 • **Mainnet SAWAC airdrop** for detailed bug reports
-• **"SAWAC Pioneer" NFT** for top 10 testers
-• **Community leadership** opportunities
-• **Early access** to new features
-• **Whitelist priority** for future token sales
-• **Exclusive Discord role** and community access
+• **"SAWAC Pioneer" NFT** - may unlock governance voting, beta access, staking opportunities
+• **Community leadership** - gain resume-worthy experience as core contributor
+• **Early access** to new features and token launches
+• **Whitelist priority** - guaranteed allocation at best prices, skip gas wars
+• **Exclusive Discord role** - private channels, direct developer access
 
 ### 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet
-• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT
-• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status
-• **Platinum:** 10+ quality reports = 5000 SAWAC + Early Access
+• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet + Community access
+• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT + Whitelist priority
+• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status + All benefits
+• **Platinum:** 10+ quality reports = 5000 SAWAC + Early access + Leadership role
 
 ## 📋 **What to Test:**
 • Wallet connection & token transactions
@@ -214,7 +222,7 @@ Hi ${from.first_name}! 👋
 
 **Ready to earn rewards? Let's make SAWAC better together! 🚀**
 
-**💡 Note:** Current SAWAC value is ~$0.10 (50 USDT for 500 SAWAC), but this is only the first presale tier! Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
+**💡 Note:** Estimated SAWAC value based on current internal market assumptions; actual price at launch may vary. Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
 
   await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
   console.log(`✅ Welcome message sent to ${from.first_name}`);
@@ -226,11 +234,13 @@ async function sendHelpMessage(chatId) {
 
 /start - Welcome message and setup guide
 /help - Show this help message
+/rewards - Detailed information about testing rewards
 /tokens - Request test tokens (SAWAC + USDT)
 /setup - BSC Testnet wallet setup instructions
 /report - Report a bug or issue
 /status - Check testing progress
 /github - Link to GitHub issues
+/privacy - Privacy protection information
 
 **Testing Resources:**
 • [GitHub Issues](https://github.com/AGBKK/sawac-web/issues)
@@ -623,6 +633,120 @@ ${addresses.map(addr => `  "${addr}",`).join('\n')}
   fs.writeFileSync(scriptPath, scriptContent);
   
   await bot.sendMessage(chatId, `✅ Distribution script generated!\n\n📁 File: generated-distribution.js\n👥 Addresses: ${addresses.length}\n\n**To run:**\n1. Copy generated-distribution.js to sawac-token/scripts/\n2. Run: npx hardhat run scripts/generated-distribution.js --network bscTestnet`, { parse_mode: 'Markdown' });
+}
+
+// Rewards info
+async function sendRewardsInfo(chatId) {
+  const rewardsText = `🏆 **SAWAC Community Testing Rewards Program**
+
+## 🪙 **Immediate Rewards:**
+• **1000 SAWAC tokens** (testnet for testing)
+• **100 USDT tokens** (testnet for testing)
+• **Free testing environment** - no real money needed
+• **Eligibility for mainnet rewards** - the real value!
+
+## 🎁 **Quality Report Rewards:**
+
+### 💎 **SAWAC Pioneer NFT**
+• **What:** Unique collectible NFT for top 10 testers
+• **Value:** $100-500+ potential value
+• **Utility:** May unlock governance voting, beta feature access, staking opportunities
+• **Benefits:** Bragging rights, community recognition, potential appreciation
+
+### 👑 **Community Leadership**
+• **What:** Recognition as core contributor to live Web3 project
+• **Value:** Resume-worthy experience, networking opportunities
+• **Benefits:** Early feature access, direct developer communication, influence on decisions
+• **Career Impact:** Valuable credential for future DAO or token launches
+
+### 📋 **Whitelist Priority**
+• **What:** Guaranteed access to future token sales/launches
+• **Value:** $50-200+ in saved gas fees and guaranteed allocation
+• **Benefits:** Skip rush during launches, best prices, no failed transactions
+• **Risk Reduction:** Avoid gas wars and missed opportunities
+
+### 🎭 **Exclusive Discord Role**
+• **What:** Special role in SAWAC Discord community
+• **Value:** Community access and recognition
+• **Benefits:** Private channels, special permissions, direct developer line
+• **Networking:** Connect with other top testers and project team
+
+## 📈 **Reward Tiers:**
+
+### 🥉 **Bronze (1-2 quality reports)**
+• 500 SAWAC mainnet (~$50 estimated)
+• Community access and recognition
+• **Total Value:** $50+ in tokens + networking
+
+### 🥈 **Silver (3-5 quality reports)**
+• 1000 SAWAC mainnet (~$100 estimated)
+• Pioneer NFT ($100-500 potential)
+• Whitelist priority ($50-200 value)
+• **Total Value:** $250-800+ in combined benefits
+
+### 🥇 **Gold (5+ quality reports)**
+• 2000 SAWAC mainnet (~$200 estimated)
+• VIP status and all benefits
+• Leadership opportunities
+• **Total Value:** $200+ in tokens + exclusive access
+
+### 💎 **Platinum (10+ quality reports)**
+• 5000 SAWAC mainnet (~$500 estimated)
+• Early access to everything
+• Leadership role and influence
+• **Total Value:** $500+ in tokens + maximum benefits
+
+## 🛡️ **Why Join the Testing Program?**
+Beyond just earning tokens, you're gaining early community status, exclusive access, and potentially rare NFTs that could appreciate over time. Your feedback shapes the project — and the perks reflect that.
+
+**💡 Note:** Estimated values based on current internal market assumptions; actual prices at launch may vary.`;
+
+  await bot.sendMessage(chatId, rewardsText, { parse_mode: 'Markdown' });
+  console.log('✅ Rewards info sent');
+}
+
+// Privacy info
+async function sendPrivacyInfo(chatId) {
+  const privacyText = `🔒 **Privacy Protection Information**
+
+## 🛡️ **How We Protect Your Data:**
+
+### 💬 **Group Chat Protection:**
+• **Wallet addresses** are never processed in group chats
+• **Detailed reports** trigger privacy warnings in groups
+• **Sensitive data** is only handled in direct messages
+• **Masked addresses** shown in privacy warnings
+
+### 📱 **Direct Message Security:**
+• **Full processing** only in private conversations
+• **Secure storage** of wallet addresses and requests
+• **Admin notifications** sent privately
+• **No data sharing** with third parties
+
+### 🗄️ **Data Storage:**
+• **Local storage** on secure servers
+• **Encrypted data** transmission
+• **Limited retention** of personal information
+• **User control** over their data
+
+### 🚫 **What We Don't Do:**
+• Store messages in group chats
+• Share wallet addresses publicly
+• Sell or trade user data
+• Require unnecessary personal information
+
+## 📋 **Your Privacy Rights:**
+• **Request data deletion** via email
+• **Update wallet addresses** through admin
+• **Opt out** of notifications
+• **Access your data** upon request
+
+**For privacy concerns:** Email info@sawac.io
+
+**Your privacy is our priority! 🔐**`;
+
+  await bot.sendMessage(chatId, privacyText, { parse_mode: 'Markdown' });
+  console.log('✅ Privacy info sent');
 }
 
 // Bot startup message
