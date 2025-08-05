@@ -96,6 +96,68 @@ async function createGitHubIssue(title, description, labels = ['bug', 'community
   }
 }
 
+// AI-powered issue analysis
+async function analyzeIssue(description, userInfo) {
+  // Simple AI analysis based on keywords and patterns
+  const analysis = {
+    severity: 'medium',
+    category: 'general',
+    priority: 'normal',
+    suggestedActions: [],
+    estimatedEffort: 'medium',
+    confidence: 'medium'
+  };
+
+  const desc = description.toLowerCase();
+  
+  // Severity analysis
+  if (desc.includes('crash') || desc.includes('error') || desc.includes('broken') || desc.includes('not working')) {
+    analysis.severity = 'high';
+    analysis.priority = 'urgent';
+  } else if (desc.includes('slow') || desc.includes('performance') || desc.includes('lag')) {
+    analysis.severity = 'medium';
+    analysis.priority = 'high';
+  } else if (desc.includes('ui') || desc.includes('design') || desc.includes('looks')) {
+    analysis.severity = 'low';
+    analysis.priority = 'normal';
+  }
+
+  // Category analysis
+  if (desc.includes('wallet') || desc.includes('connect') || desc.includes('transaction')) {
+    analysis.category = 'wallet-integration';
+    analysis.suggestedActions.push('Check wallet connection logic', 'Verify transaction handling');
+  } else if (desc.includes('mobile') || desc.includes('phone') || desc.includes('responsive')) {
+    analysis.category = 'mobile-ux';
+    analysis.suggestedActions.push('Test on mobile devices', 'Check responsive design');
+  } else if (desc.includes('login') || desc.includes('auth') || desc.includes('sign')) {
+    analysis.category = 'authentication';
+    analysis.suggestedActions.push('Review authentication flow', 'Check session management');
+  } else if (desc.includes('token') || desc.includes('swap') || desc.includes('trade')) {
+    analysis.category = 'trading';
+    analysis.suggestedActions.push('Verify token contract interactions', 'Check swap functionality');
+  }
+
+  // Effort estimation
+  if (analysis.severity === 'high') {
+    analysis.estimatedEffort = 'high';
+  } else if (analysis.category === 'wallet-integration' || analysis.category === 'authentication') {
+    analysis.estimatedEffort = 'high';
+  } else if (analysis.category === 'mobile-ux') {
+    analysis.estimatedEffort = 'medium';
+  } else {
+    analysis.estimatedEffort = 'low';
+  }
+
+  // Confidence based on description length and detail
+  if (description.length > 100 && (desc.includes('steps') || desc.includes('when') || desc.includes('browser'))) {
+    analysis.confidence = 'high';
+  } else if (description.length < 50) {
+    analysis.confidence = 'low';
+  }
+
+  return analysis;
+}
+
 // Create bot instance with error handling
 const bot = new TelegramBot(token, { 
   polling: true,
@@ -203,6 +265,14 @@ async function handleCommand(msg) {
       
     case '/privacy':
       await sendPrivacyInfo(chatId);
+      break;
+      
+    case '/issues':
+      if (isAdmin(from.id)) {
+        await showPendingIssues(chatId);
+      } else {
+        await bot.sendMessage(chatId, '❌ Admin only command.');
+      }
       break;
       
     default:
@@ -639,22 +709,51 @@ Thank you for helping improve SAWAC! 🚀`;
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Bug report received from ${from.first_name}: ${description.substring(0, 50)}...`);
   
-  // Notify admin about bug report
+  // AI analysis of the issue
+  const aiAnalysis = await analyzeIssue(description, from);
+  
+  // Notify admin about bug report with AI analysis
   if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
-    const bugReportNotification = `🐛 **New Bug Report**
+    const severityEmoji = {
+      'high': '🔴',
+      'medium': '🟡', 
+      'low': '🟢'
+    };
+    
+    const priorityEmoji = {
+      'urgent': '🚨',
+      'high': '⚡',
+      'normal': '📋'
+    };
+
+    const bugReportNotification = `🤖 **AI-Analyzed Bug Report**
 
 **User:** ${from.first_name} (@${from.username || 'no username'})
-**Description:** ${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
 **Time:** ${new Date().toLocaleString()}
 ${issueUrl ? `**GitHub Issue:** [View](${issueUrl})` : ''}
 
-**Actions:**
-• Review the full report
+**📝 Description:**
+${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
+
+**🔍 AI Analysis:**
+• **Severity:** ${severityEmoji[aiAnalysis.severity]} ${aiAnalysis.severity.toUpperCase()}
+• **Priority:** ${priorityEmoji[aiAnalysis.priority]} ${aiAnalysis.priority.toUpperCase()}
+• **Category:** ${aiAnalysis.category.replace('-', ' ').toUpperCase()}
+• **Effort:** ${aiAnalysis.estimatedEffort.toUpperCase()}
+• **Confidence:** ${aiAnalysis.confidence.toUpperCase()}
+
+**💡 Suggested Actions:**
+${aiAnalysis.suggestedActions.map(action => `• ${action}`).join('\n')}
+
+**📋 Next Steps:**
+• Review the full report in GitHub
 • Contact user if more details needed
-• Update GitHub issue with status`;
+• Update GitHub issue with status
+• Consider priority for development queue`;
 
     try {
       await bot.sendMessage(ADMIN_USER_ID, bugReportNotification, { parse_mode: 'Markdown' });
+      console.log(`✅ AI-analyzed notification sent to admin for issue from ${from.first_name}`);
     } catch (error) {
       console.error('Failed to notify admin about bug report:', error.message);
     }
@@ -831,6 +930,53 @@ async function sendPrivacyInfo(chatId) {
 
   await bot.sendMessage(chatId, privacyText, { parse_mode: 'Markdown' });
   console.log('✅ Privacy info sent');
+}
+
+// Show pending issues for admin review
+async function showPendingIssues(chatId) {
+  try {
+    if (!octokit) {
+      await bot.sendMessage(chatId, '⚠️ GitHub integration not available');
+      return;
+    }
+
+    const [owner, repo] = githubRepo.split('/');
+    const issues = await octokit.issues.listForRepo({
+      owner,
+      repo,
+      state: 'open',
+      labels: 'community-testing'
+    });
+
+    if (issues.data.length === 0) {
+      await bot.sendMessage(chatId, '✅ No pending community testing issues.');
+      return;
+    }
+
+    let message = `📋 **Pending Community Issues (${issues.data.length}):**\n\n`;
+    
+    issues.data.slice(0, 10).forEach((issue, index) => {
+      const created = new Date(issue.created_at).toLocaleDateString();
+      const severity = issue.labels.find(l => l.name.includes('high') || l.name.includes('medium') || l.name.includes('low'));
+      const severityText = severity ? severity.name : 'medium';
+      
+      message += `${index + 1}. **${issue.title}**\n`;
+      message += `   📅 Created: ${created}\n`;
+      message += `   🔗 [View Issue](${issue.html_url})\n`;
+      message += `   📝 ${issue.body.substring(0, 100)}${issue.body.length > 100 ? '...' : ''}\n\n`;
+    });
+
+    if (issues.data.length > 10) {
+      message += `... and ${issues.data.length - 10} more issues\n`;
+    }
+
+    message += `\n**Actions:**\n• Review issues in GitHub\n• Update status and labels\n• Contact users for more details`;
+
+    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Error fetching pending issues:', error);
+    await bot.sendMessage(chatId, '❌ Error fetching pending issues');
+  }
 }
 
 // Bot startup message
