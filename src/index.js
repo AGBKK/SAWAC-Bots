@@ -2,6 +2,7 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
+const { Octokit } = require('@octokit/rest');
 
 console.log('🤖 SAWAC Bot starting...');
 
@@ -11,6 +12,21 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
   console.error('❌ TELEGRAM_BOT_TOKEN not found in environment variables');
   process.exit(1);
+}
+
+// GitHub configuration
+const githubToken = process.env.GITHUB_TOKEN;
+const githubRepo = process.env.GITHUB_REPO || 'AGBKK/sawac-web';
+
+// Initialize GitHub client if token is available
+let octokit = null;
+if (githubToken) {
+  octokit = new Octokit({
+    auth: githubToken
+  });
+  console.log('✅ GitHub integration enabled');
+} else {
+  console.log('⚠️ GITHUB_TOKEN not found - GitHub integration disabled');
 }
 
 // Token management system
@@ -52,6 +68,32 @@ function saveRequests(data) {
 // Check if user is admin
 function isAdmin(userId) {
   return userId.toString() === ADMIN_USER_ID.toString();
+}
+
+// Create GitHub issue from bot report
+async function createGitHubIssue(title, description, labels = ['bug', 'community-testing']) {
+  if (!octokit) {
+    console.log('⚠️ GitHub integration not available');
+    return null;
+  }
+
+  try {
+    const [owner, repo] = githubRepo.split('/');
+    
+    const issue = await octokit.issues.create({
+      owner,
+      repo,
+      title,
+      body: description,
+      labels
+    });
+
+    console.log(`✅ GitHub issue created: #${issue.data.number}`);
+    return issue.data.html_url;
+  } catch (error) {
+    console.error('❌ Error creating GitHub issue:', error.message);
+    return null;
+  }
 }
 
 // Create bot instance with error handling
@@ -559,22 +601,64 @@ Example: \`0x1234567890123456789012345678901234567890\``;
 
 // Handle bug description
 async function handleBugDescription(chatId, from, description) {
+  // Create GitHub issue
+  const issueTitle = `[Community Testing] Bug Report from ${from.first_name}`;
+  const issueDescription = `## Bug Report from Community Testing
+
+**Reporter:** ${from.first_name} (@${from.username || 'no username'})
+**Telegram User ID:** ${from.id}
+**Report Time:** ${new Date().toISOString()}
+
+## Description
+${description}
+
+## Additional Information
+- **Source:** SAWAC Telegram Bot
+- **Priority:** Community Testing
+- **Status:** Needs Review
+
+---
+*This issue was automatically created from the SAWAC Community Testing Telegram Bot.*`;
+
+  const issueUrl = await createGitHubIssue(issueTitle, issueDescription, ['bug', 'community-testing', 'telegram-bot']);
+
   const responseText = `🐛 **Bug Report Received**
 
 **From:** ${from.first_name} (@${from.username || 'no username'})
 **Description:** ${description}
 
 **Next Steps:**
-1. I'll forward this to the development team
+1. ✅ Issue forwarded to development team
 2. You may be contacted for more details
 3. Check [GitHub Issues](https://github.com/AGBKK/sawac-web/issues) for updates
 
-**For detailed reports:** Use GitHub with the issue templates for better tracking.
+${issueUrl ? `**GitHub Issue:** [View Issue](${issueUrl})` : '**Note:** GitHub integration not available'}
 
 Thank you for helping improve SAWAC! 🚀`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Bug report received from ${from.first_name}: ${description.substring(0, 50)}...`);
+  
+  // Notify admin about bug report
+  if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
+    const bugReportNotification = `🐛 **New Bug Report**
+
+**User:** ${from.first_name} (@${from.username || 'no username'})
+**Description:** ${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
+**Time:** ${new Date().toLocaleString()}
+${issueUrl ? `**GitHub Issue:** [View](${issueUrl})` : ''}
+
+**Actions:**
+• Review the full report
+• Contact user if more details needed
+• Update GitHub issue with status`;
+
+    try {
+      await bot.sendMessage(ADMIN_USER_ID, bugReportNotification, { parse_mode: 'Markdown' });
+    } catch (error) {
+      console.error('Failed to notify admin about bug report:', error.message);
+    }
+  }
 }
 
 // Admin functions
