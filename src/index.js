@@ -753,4 +753,38 @@ async function sendPrivacyInfo(chatId) {
 console.log('🚀 SAWAC Telegram Bot is running...');
 console.log('📱 Bot is ready to receive messages');
 console.log(`🔑 Bot token: ${token ? '✅ Set' : '❌ Missing'}`);
-console.log('📊 Logs will be displayed in console'); 
+console.log('📊 Logs will be displayed in console');
+
+// Simple HTTP server for Railway health checks
+const http = require('http');
+const port = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: 'healthy',
+      bot: 'running',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    }));
+  } else {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('SAWAC Telegram Bot is running! 🤖');
+  }
+});
+
+server.listen(port, () => {
+  console.log(`🌐 HTTP server listening on port ${port}`);
+  console.log(`🏥 Health check available at http://localhost:${port}/health`);
+});
+
+// Keep the process alive
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error.message);
+  console.error('Stack:', error.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+}); 
