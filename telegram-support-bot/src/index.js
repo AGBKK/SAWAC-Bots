@@ -281,62 +281,55 @@ async function handleCommand(msg) {
 }
 
 // Welcome message
+}
+
 async function sendWelcomeMessage(chatId, from) {
-  const welcomeText = `🎉 **Welcome to SAWAC Community Testing!**
+  const welcomeText = `🎉 **Welcome to SAWAC Community!**
 
 Hi ${from.first_name}! 👋
 
-## 🏆 **TESTING REWARDS PROGRAM**
+## 🚀 **SAWAC DeFi Ecosystem**
 
-### 🪙 **Immediate Rewards:**
-• **1000 SAWAC tokens** + **100 USDT** (testnet for testing)
-• **Free testing environment** - no real money needed
-• **Eligibility for mainnet rewards** - the real value!
+**SAWAC** is a comprehensive DeFi platform featuring:
+• **Advanced Staking** - Multi-reward types with dynamic APY
+• **Smart Rewards** - 8 reward types with tier-based multipliers
+• **Token Vesting** - Professional vesting schedules
+• **Community Airdrops** - Regular token distributions
+• **Presale System** - Tier-based token sales
 
-### 🎁 **Quality Report Rewards:**
-• **Mainnet SAWAC airdrop** for detailed bug reports
-• **"SAWAC Pioneer" NFT** - may unlock governance voting, beta access, staking opportunities
-• **Community leadership** - gain resume-worthy experience as core contributor
-• **Early access** to new features and token launches
-• **Whitelist priority** - guaranteed allocation at best prices, skip gas wars
-• **Exclusive Discord role** - private channels, direct developer access
+## 🎯 **Community Support & Testing**
 
-### 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet + Community access
-• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT + Whitelist priority
-• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status + All benefits
-• **Platinum:** 10+ quality reports = 5000 SAWAC + Early access + Leadership role
+### 📱 **How We Can Help:**
+• **Platform Support** - Get help with staking, rewards, airdrops
+• **Feature Testing** - Test new features and provide feedback
+• **Bug Reports** - Help improve the platform
+• **Community Discussion** - Share ideas and suggestions
 
-## 📋 **What to Test:**
-• Wallet connection & token transactions
-• Mobile experience & UI/UX
-• Performance & edge cases
-• Cross-browser compatibility
+### 🛠️ **Available Commands:**
+• **/help** - Show all available commands
+• **/faq** - Frequently asked questions
+• **/staking** - Staking guide and information
+• **/presale** - How to buy SAWAC tokens
+• **/rewards** - Rewards system information
+• **/contact** - Contact support team
 
-## 📊 **How to Report:**
-• **Quick:** Use /report command
-• **Detailed:** GitHub Issues with screenshots
-• **Quality reports = better rewards!**
+## 🌐 **Platform Access**
 
-## 🔒 **Privacy Protection:**
-• Wallet addresses are processed privately
-• Sensitive data is not stored in group chat
-• Use direct messages for personal info
+**Website:** https://testing.sawac.io
+**Support:** support@sawac.io
+**Community:** @SawacCommunity
 
-## 🚀 **Quick Start:**
-1. Use /setup for wallet instructions
-2. Use /tokens to request test tokens
-3. Start testing at https://sawac.io
-4. Report findings via /report or GitHub
+## 💎 **Community Benefits**
 
-**Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
-**Email Support:** info@sawac.io
+Active community members get:
+• **Early access** to new features
+• **Priority support** from the team
+• **Community recognition** and rewards
+• **Influence** on platform development
 
-**Ready to earn rewards? Let's make SAWAC better together! 🚀**
+**Ready to explore SAWAC? Use /help to see all available commands!** 🚀`;
 
-**💡 Note:** Estimated SAWAC value based on current internal market assumptions; actual price at launch may vary. Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
-
-  await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
+  await bot.sendMessage(chatId, welcomeText, { parse_mode: "Markdown" });
   console.log(`✅ Welcome message sent to ${from.first_name}`);
 }
 
