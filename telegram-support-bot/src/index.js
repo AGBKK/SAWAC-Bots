@@ -160,7 +160,13 @@ async function analyzeIssue(description, userInfo) {
 
 // Create bot instance with error handling
 const bot = new TelegramBot(token, { 
-  polling: true,
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10
+    }
+  },
   webHook: false
 });
 
