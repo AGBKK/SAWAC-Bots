@@ -283,8 +283,28 @@ async function handleCommand(msg) {
 // Welcome message
 }
 
+}
+
 async function sendWelcomeMessage(chatId, from) {
-  const welcomeText = `🎉 **Welcome to SAWAC Community!**
+  // Send testing message first
+  const testingMessage = `🧪 **SAWAC Community Testing**
+
+Welcome to SAWAC testing!
+
+**Quick Start:**
+• Type `/test` to access testing dashboard
+• Get test tokens and start testing
+• Earn rewards for quality feedback
+
+**Testing Group:** @SawacCommunity
+**Support:** support@sawac.io`;
+
+  await bot.sendMessage(chatId, testingMessage, { parse_mode: "Markdown" });
+  console.log(`✅ Testing message sent to ${from.first_name}`);
+
+  // Wait 1 second, then send general welcome
+  setTimeout(async () => {
+    const welcomeText = `🎉 **Welcome to SAWAC Community!**
 
 Hi ${from.first_name}! 👋
 
@@ -329,8 +349,9 @@ Active community members get:
 
 **Ready to explore SAWAC? Use /help to see all available commands!** 🚀`;
 
-  await bot.sendMessage(chatId, welcomeText, { parse_mode: "Markdown" });
-  console.log(`✅ Welcome message sent to ${from.first_name}`);
+    await bot.sendMessage(chatId, welcomeText, { parse_mode: "Markdown" });
+    console.log(`✅ Welcome message sent to ${from.first_name}`);
+  }, 1000);
 }
 
 // Help message
