@@ -548,36 +548,56 @@ async function handleMessage(msg, isNewUser) {
     return;
   }
   
-  // Handle greetings and common messages
+  // Handle natural language responses
   const lowerText = text.toLowerCase();
+  
+  // Greetings
   if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
     await bot.sendMessage(chatId, 
-      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
-    console.log(`✅ Greeting response sent to ${from.first_name}`);
+      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\nHow can I help you today? You can ask me about staking, rewards, or use /help for commands.`);
     return;
   }
   
-  // Default response for other messages
-  // Handle greetings and common messages
-  const lowerText = text.toLowerCase();
-  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+  // SAWAC questions
+  if (lowerText.includes("what is sawac") || lowerText.includes("tell me about sawac")) {
     await bot.sendMessage(chatId, 
-      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
-    console.log(`✅ Greeting response sent to ${from.first_name}`);
+      `🚀 **SAWAC** is a comprehensive DeFi platform featuring:\n\n• **Advanced Staking** - Multi-reward types with dynamic APY\n• **Smart Rewards** - 8 reward types with tier-based multipliers\n• **Token Vesting** - Professional vesting schedules\n• **Community Airdrops** - Regular token distributions\n\n🌐 Visit: https://testing.sawac.io\n💬 Join: @SawacCommunity`);
     return;
   }
   
-  // Default response for other messages
-  // Handle greetings and common messages
-  const lowerText = text.toLowerCase();
-  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+  // Staking questions
+  if (lowerText.includes("staking") || lowerText.includes("stake") || lowerText.includes("apy")) {
     await bot.sendMessage(chatId, 
-      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
-    console.log(`✅ Greeting response sent to ${from.first_name}`);
+      `💰 **SAWAC Staking Features:**\n\n• **Multi-Reward Types** - SAWAC, USDT, or Mixed rewards\n• **Dynamic APY** - Real-time calculations based on lock periods\n• **Early Unstaking Penalties** - Configurable penalty system\n• **Referral Bonuses** - 2% referral rewards\n\n📊 Use /staking for detailed guide\n🌐 Test at: https://testing.sawac.io/staking`);
     return;
   }
   
-  // Default response for other messages
+  // How to buy questions
+  if (lowerText.includes("how to buy") || lowerText.includes("buy sawac") || lowerText.includes("presale")) {
+    await bot.sendMessage(chatId, 
+      `🛒 **How to Buy SAWAC:**\n\n1. **Visit:** https://testing.sawac.io/presale\n2. **Connect Wallet** - MetaMask or compatible wallet\n3. **Choose Tier** - Select your preferred tier\n4. **Buy Tokens** - Use BNB to purchase\n\n💡 Use /presale for detailed instructions\n🌐 Start here: https://testing.sawac.io/presale`);
+    return;
+  }
+  
+  // Support questions
+  if (lowerText.includes("help") || lowerText.includes("support") || lowerText.includes("problem")) {
+    await bot.sendMessage(chatId, 
+      `🆘 **SAWAC Support:**\n\n• **General Help:** Use /help for commands\n• **FAQ:** Use /faq for common questions\n• **Contact:** Use /contact for direct support\n• **Testing:** Use /test for testing features\n\n📧 Email: support@sawac.io\n💬 Community: @SawacCommunity`);
+    return;
+  }
+  
+  // Testing questions
+  if (lowerText.includes("test") || lowerText.includes("testing")) {
+    await bot.sendMessage(chatId, 
+      `🧪 **SAWAC Testing Program:**\n\n• **Get Test Tokens** - Use /tokens to request\n• **Test Features** - Staking, rewards, airdrops\n• **Report Bugs** - Help improve the platform\n• **Earn Rewards** - Quality reports get rewards\n\n💡 Use /test for testing dashboard\n🌐 Test at: https://testing.sawac.io`);
+    return;
+  }
+  
+  // Default response for unrecognized messages
+  await bot.sendMessage(chatId, 
+    `Hi ${from.first_name}! 👋\n\nI can help you with:\n• SAWAC platform questions\n• Staking and rewards\n• How to buy tokens\n• Testing features\n• General support\n\n💡 Use /help to see all commands or just ask me anything!`);
+  console.log(`✅ Natural response sent to ${from.first_name}`);
+
   // Handle greetings and common messages
   const lowerText = text.toLowerCase();
   if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
