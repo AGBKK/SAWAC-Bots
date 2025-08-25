@@ -548,10 +548,46 @@ async function handleMessage(msg, isNewUser) {
     return;
   }
   
-  // Default response for existing users
-  await bot.sendMessage(chatId, 
-    '💡 Use /help to see available commands or /tokens to request test tokens!');
-  console.log(`✅ Default response sent to ${from.first_name}`);
+  // Handle greetings and common messages
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+    await bot.sendMessage(chatId, 
+      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
+    console.log(`✅ Greeting response sent to ${from.first_name}`);
+    return;
+  }
+  
+  // Default response for other messages
+  // Handle greetings and common messages
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+    await bot.sendMessage(chatId, 
+      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
+    console.log(`✅ Greeting response sent to ${from.first_name}`);
+    return;
+  }
+  
+  // Default response for other messages
+  // Handle greetings and common messages
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+    await bot.sendMessage(chatId, 
+      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
+    console.log(`✅ Greeting response sent to ${from.first_name}`);
+    return;
+  }
+  
+  // Default response for other messages
+  // Handle greetings and common messages
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+    await bot.sendMessage(chatId, 
+      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
+    console.log(`✅ Greeting response sent to ${from.first_name}`);
+    return;
+  }
+  
+  // Default response for other messages
 }
 
 // Handle wallet address with token management
