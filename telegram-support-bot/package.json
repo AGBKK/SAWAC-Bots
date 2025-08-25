@@ -1,5 +1,5 @@
 {
-  "name": "sawac-telegram-bot",
+  "name": "sawac-telegram-support-bot",
   "version": "1.0.0",
   "description": "SAWAC Community Testing Telegram Bot",
   "main": "src/index.js",
