@@ -17,6 +17,9 @@ if (!token) {
 const REQUESTS_FILE = path.join(__dirname, '../data/token-requests.json');
 const ADMIN_USER_ID = process.env.ADMIN_USER_ID || 'YOUR_TELEGRAM_USER_ID';
 
+// GitHub configuration (explicitly set to correct repo)
+const GITHUB_REPO = 'AGBKK/SAWAC-Bots';
+
 // Ensure data directory exists
 function ensureDataDir() {
   try {
