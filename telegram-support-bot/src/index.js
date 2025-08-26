@@ -2,7 +2,6 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
-const { Octokit } = require('@octokit/rest');
 
 console.log('🤖 SAWAC Bot starting...');
 
@@ -12,21 +11,6 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
   console.error('❌ TELEGRAM_BOT_TOKEN not found in environment variables');
   process.exit(1);
-}
-
-// GitHub configuration
-const githubToken = process.env.GITHUB_TOKEN;
-const githubRepo = process.env.GITHUB_REPO || 'AGBKK/sawac-web';
-
-// Initialize GitHub client if token is available
-let octokit = null;
-if (githubToken) {
-  octokit = new Octokit({
-    auth: githubToken
-  });
-  console.log('✅ GitHub integration enabled');
-} else {
-  console.log('⚠️ GITHUB_TOKEN not found - GitHub integration disabled');
 }
 
 // Token management system
@@ -70,103 +54,9 @@ function isAdmin(userId) {
   return userId.toString() === ADMIN_USER_ID.toString();
 }
 
-// Create GitHub issue from bot report
-async function createGitHubIssue(title, description, labels = ['bug', 'community-testing']) {
-  if (!octokit) {
-    console.log('⚠️ GitHub integration not available');
-    return null;
-  }
-
-  try {
-    const [owner, repo] = githubRepo.split('/');
-    
-    const issue = await octokit.issues.create({
-      owner,
-      repo,
-      title,
-      body: description,
-      labels
-    });
-
-    console.log(`✅ GitHub issue created: #${issue.data.number}`);
-    return issue.data.html_url;
-  } catch (error) {
-    console.error('❌ Error creating GitHub issue:', error.message);
-    return null;
-  }
-}
-
-// AI-powered issue analysis
-async function analyzeIssue(description, userInfo) {
-  // Simple AI analysis based on keywords and patterns
-  const analysis = {
-    severity: 'medium',
-    category: 'general',
-    priority: 'normal',
-    suggestedActions: [],
-    estimatedEffort: 'medium',
-    confidence: 'medium'
-  };
-
-  const desc = description.toLowerCase();
-  
-  // Severity analysis
-  if (desc.includes('crash') || desc.includes('error') || desc.includes('broken') || desc.includes('not working')) {
-    analysis.severity = 'high';
-    analysis.priority = 'urgent';
-  } else if (desc.includes('slow') || desc.includes('performance') || desc.includes('lag')) {
-    analysis.severity = 'medium';
-    analysis.priority = 'high';
-  } else if (desc.includes('ui') || desc.includes('design') || desc.includes('looks')) {
-    analysis.severity = 'low';
-    analysis.priority = 'normal';
-  }
-
-  // Category analysis
-  if (desc.includes('wallet') || desc.includes('connect') || desc.includes('transaction')) {
-    analysis.category = 'wallet-integration';
-    analysis.suggestedActions.push('Check wallet connection logic', 'Verify transaction handling');
-  } else if (desc.includes('mobile') || desc.includes('phone') || desc.includes('responsive')) {
-    analysis.category = 'mobile-ux';
-    analysis.suggestedActions.push('Test on mobile devices', 'Check responsive design');
-  } else if (desc.includes('login') || desc.includes('auth') || desc.includes('sign')) {
-    analysis.category = 'authentication';
-    analysis.suggestedActions.push('Review authentication flow', 'Check session management');
-  } else if (desc.includes('token') || desc.includes('swap') || desc.includes('trade')) {
-    analysis.category = 'trading';
-    analysis.suggestedActions.push('Verify token contract interactions', 'Check swap functionality');
-  }
-
-  // Effort estimation
-  if (analysis.severity === 'high') {
-    analysis.estimatedEffort = 'high';
-  } else if (analysis.category === 'wallet-integration' || analysis.category === 'authentication') {
-    analysis.estimatedEffort = 'high';
-  } else if (analysis.category === 'mobile-ux') {
-    analysis.estimatedEffort = 'medium';
-  } else {
-    analysis.estimatedEffort = 'low';
-  }
-
-  // Confidence based on description length and detail
-  if (description.length > 100 && (desc.includes('steps') || desc.includes('when') || desc.includes('browser'))) {
-    analysis.confidence = 'high';
-  } else if (description.length < 50) {
-    analysis.confidence = 'low';
-  }
-
-  return analysis;
-}
-
 // Create bot instance with error handling
 const bot = new TelegramBot(token, { 
-  polling: {
-    interval: 300,
-    autoStart: true,
-    params: {
-      timeout: 10
-    }
-  },
+  polling: true,
   webHook: false
 });
 
@@ -276,14 +166,6 @@ async function handleCommand(msg) {
       await sendPrivacyInfo(chatId);
       break;
       
-    case '/issues':
-      if (isAdmin(from.id)) {
-        await showPendingIssues(chatId);
-      } else {
-        await bot.sendMessage(chatId, '❌ Admin only command.');
-      }
-      break;
-      
     default:
       await bot.sendMessage(chatId, '❓ Unknown command. Use /help to see available commands.');
   }
@@ -291,72 +173,62 @@ async function handleCommand(msg) {
 
 // Welcome message
 async function sendWelcomeMessage(chatId, from) {
-  // Send testing message first
-  const testingMessage = `🧪 **SAWAC Community Testing**
-
-Welcome to SAWAC testing!
-
-**Quick Start:**
-• Type `/test` to access testing dashboard
-• Get test tokens and start testing
-• Earn rewards for quality feedback
-
-**Testing Group:** @SawacCommunity
-**Support:** support@sawac.io`;
-
-  await bot.sendMessage(chatId, testingMessage, { parse_mode: "Markdown" });
-  console.log(`✅ Testing message sent to ${from.first_name}`);
-
-  // Wait 1 second, then send general welcome
-  setTimeout(async () => {
-    const welcomeText = `🎉 **Welcome to SAWAC Community!**
+  const welcomeText = `🎉 **Welcome to SAWAC Community Testing!**
 
 Hi ${from.first_name}! 👋
 
-## 🚀 **SAWAC DeFi Ecosystem**
+## 🏆 **TESTING REWARDS PROGRAM**
 
-**SAWAC** is a comprehensive DeFi platform featuring:
-• **Advanced Staking** - Multi-reward types with dynamic APY
-• **Smart Rewards** - 8 reward types with tier-based multipliers
-• **Token Vesting** - Professional vesting schedules
-• **Community Airdrops** - Regular token distributions
-• **Presale System** - Tier-based token sales
+### 🪙 **Immediate Rewards:**
+• **1000 SAWAC tokens** + **100 USDT** (testnet for testing)
+• **Free testing environment** - no real money needed
+• **Eligibility for mainnet rewards** - the real value!
 
-## 🎯 **Community Support & Testing**
+### 🎁 **Quality Report Rewards:**
+• **Mainnet SAWAC airdrop** for detailed bug reports
+• **"SAWAC Pioneer" NFT** - may unlock governance voting, beta access, staking opportunities
+• **Community leadership** - gain resume-worthy experience as core contributor
+• **Early access** to new features and token launches
+• **Whitelist priority** - guaranteed allocation at best prices, skip gas wars
+• **Exclusive Discord role** - private channels, direct developer access
 
-### 📱 **How We Can Help:**
-• **Platform Support** - Get help with staking, rewards, airdrops
-• **Feature Testing** - Test new features and provide feedback
-• **Bug Reports** - Help improve the platform
-• **Community Discussion** - Share ideas and suggestions
+### 📈 **Reward Tiers:**
+• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet + Community access
+• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT + Whitelist priority
+• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status + All benefits
+• **Platinum:** 10+ quality reports = 5000 SAWAC + Early access + Leadership role
 
-### 🛠️ **Available Commands:**
-• **/help** - Show all available commands
-• **/faq** - Frequently asked questions
-• **/staking** - Staking guide and information
-• **/presale** - How to buy SAWAC tokens
-• **/rewards** - Rewards system information
-• **/contact** - Contact support team
+## 📋 **What to Test:**
+• Wallet connection & token transactions
+• Mobile experience & UI/UX
+• Performance & edge cases
+• Cross-browser compatibility
 
-## 🌐 **Platform Access**
+## 📊 **How to Report:**
+• **Quick:** Use /report command
+• **Detailed:** GitHub Issues with screenshots
+• **Quality reports = better rewards!**
 
-**Website:** https://testing.sawac.io
-**Support:** support@sawac.io
-**Community:** @SawacCommunity
+## 🔒 **Privacy Protection:**
+• Wallet addresses are processed privately
+• Sensitive data is not stored in group chat
+• Use direct messages for personal info
 
-## 💎 **Community Benefits**
+## 🚀 **Quick Start:**
+1. Use /setup for wallet instructions
+2. Use /tokens to request test tokens
+3. Start testing at https://sawac.io
+4. Report findings via /report or GitHub
 
-Active community members get:
-• **Early access** to new features
-• **Priority support** from the team
-• **Community recognition** and rewards
-• **Influence** on platform development
+**Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
+**Email Support:** info@sawac.io
 
-**Ready to explore SAWAC? Use /help to see all available commands!** 🚀`;
+**Ready to earn rewards? Let's make SAWAC better together! 🚀**
 
-    await bot.sendMessage(chatId, welcomeText, { parse_mode: "Markdown" });
-    console.log(`✅ Welcome message sent to ${from.first_name}`);
-  }, 1000);
+**💡 Note:** Estimated SAWAC value based on current internal market assumptions; actual price at launch may vary. Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
+
+  await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
+  console.log(`✅ Welcome message sent to ${from.first_name}`);
 }
 
 // Help message
@@ -560,6 +432,7 @@ async function handleMessage(msg, isNewUser) {
   if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
     await bot.sendMessage(chatId, 
       `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\nHow can I help you today? You can ask me about staking, rewards, or use /help for commands.`);
+    console.log(`✅ Greeting response sent to ${from.first_name}`);
     return;
   }
   
@@ -735,93 +608,22 @@ Example: \`0x1234567890123456789012345678901234567890\``;
 
 // Handle bug description
 async function handleBugDescription(chatId, from, description) {
-  // Create GitHub issue
-  const issueTitle = `[Community Testing] Bug Report from ${from.first_name}`;
-  const issueDescription = `## Bug Report from Community Testing
-
-**Reporter:** ${from.first_name} (@${from.username || 'no username'})
-**Telegram User ID:** ${from.id}
-**Report Time:** ${new Date().toISOString()}
-
-## Description
-${description}
-
-## Additional Information
-- **Source:** SAWAC Telegram Bot
-- **Priority:** Community Testing
-- **Status:** Needs Review
-
----
-*This issue was automatically created from the SAWAC Community Testing Telegram Bot.*`;
-
-  const issueUrl = await createGitHubIssue(issueTitle, issueDescription, ['bug', 'community-testing', 'telegram-bot']);
-
   const responseText = `🐛 **Bug Report Received**
 
 **From:** ${from.first_name} (@${from.username || 'no username'})
 **Description:** ${description}
 
 **Next Steps:**
-1. ✅ Issue forwarded to development team
+1. I'll forward this to the development team
 2. You may be contacted for more details
 3. Check [GitHub Issues](https://github.com/AGBKK/sawac-web/issues) for updates
 
-${issueUrl ? `**GitHub Issue:** [View Issue](${issueUrl})` : '**Note:** GitHub integration not available'}
+**For detailed reports:** Use GitHub with the issue templates for better tracking.
 
 Thank you for helping improve SAWAC! 🚀`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Bug report received from ${from.first_name}: ${description.substring(0, 50)}...`);
-  
-  // AI analysis of the issue
-  const aiAnalysis = await analyzeIssue(description, from);
-  
-  // Notify admin about bug report with AI analysis
-  if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
-    const severityEmoji = {
-      'high': '🔴',
-      'medium': '🟡', 
-      'low': '🟢'
-    };
-    
-    const priorityEmoji = {
-      'urgent': '🚨',
-      'high': '⚡',
-      'normal': '📋'
-    };
-
-    const bugReportNotification = `🤖 **AI-Analyzed Bug Report**
-
-**User:** ${from.first_name} (@${from.username || 'no username'})
-**Time:** ${new Date().toLocaleString()}
-${issueUrl ? `**GitHub Issue:** [View](${issueUrl})` : ''}
-
-**📝 Description:**
-${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
-
-**🔍 AI Analysis:**
-• **Severity:** ${severityEmoji[aiAnalysis.severity]} ${aiAnalysis.severity.toUpperCase()}
-• **Priority:** ${priorityEmoji[aiAnalysis.priority]} ${aiAnalysis.priority.toUpperCase()}
-• **Category:** ${aiAnalysis.category.replace('-', ' ').toUpperCase()}
-• **Effort:** ${aiAnalysis.estimatedEffort.toUpperCase()}
-• **Confidence:** ${aiAnalysis.confidence.toUpperCase()}
-
-**💡 Suggested Actions:**
-${aiAnalysis.suggestedActions.map(action => `• ${action}`).join('\n')}
-
-**📋 Next Steps:**
-• Review the full report in GitHub
-• Contact user if more details needed
-• Update GitHub issue with status
-• Consider priority for development queue`;
-
-    try {
-      await bot.sendMessage(ADMIN_USER_ID, bugReportNotification, { parse_mode: 'Markdown' });
-      console.log(`✅ AI-analyzed notification sent to admin for issue from ${from.first_name}`);
-    } catch (error) {
-      console.error('Failed to notify admin about bug report:', error.message);
-    }
-  }
 }
 
 // Admin functions
@@ -996,89 +798,8 @@ async function sendPrivacyInfo(chatId) {
   console.log('✅ Privacy info sent');
 }
 
-// Show pending issues for admin review
-async function showPendingIssues(chatId) {
-  try {
-    if (!octokit) {
-      await bot.sendMessage(chatId, '⚠️ GitHub integration not available');
-      return;
-    }
-
-    const [owner, repo] = githubRepo.split('/');
-    const issues = await octokit.issues.listForRepo({
-      owner,
-      repo,
-      state: 'open',
-      labels: 'community-testing'
-    });
-
-    if (issues.data.length === 0) {
-      await bot.sendMessage(chatId, '✅ No pending community testing issues.');
-      return;
-    }
-
-    let message = `📋 **Pending Community Issues (${issues.data.length}):**\n\n`;
-    
-    issues.data.slice(0, 10).forEach((issue, index) => {
-      const created = new Date(issue.created_at).toLocaleDateString();
-      const severity = issue.labels.find(l => l.name.includes('high') || l.name.includes('medium') || l.name.includes('low'));
-      const severityText = severity ? severity.name : 'medium';
-      
-      message += `${index + 1}. **${issue.title}**\n`;
-      message += `   📅 Created: ${created}\n`;
-      message += `   🔗 [View Issue](${issue.html_url})\n`;
-      message += `   📝 ${issue.body.substring(0, 100)}${issue.body.length > 100 ? '...' : ''}\n\n`;
-    });
-
-    if (issues.data.length > 10) {
-      message += `... and ${issues.data.length - 10} more issues\n`;
-    }
-
-    message += `\n**Actions:**\n• Review issues in GitHub\n• Update status and labels\n• Contact users for more details`;
-
-    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-  } catch (error) {
-    console.error('Error fetching pending issues:', error);
-    await bot.sendMessage(chatId, '❌ Error fetching pending issues');
-  }
-}
-
 // Bot startup message
 console.log('🚀 SAWAC Telegram Bot is running...');
 console.log('📱 Bot is ready to receive messages');
 console.log(`🔑 Bot token: ${token ? '✅ Set' : '❌ Missing'}`);
-console.log('📊 Logs will be displayed in console');
-
-// Simple HTTP server for Railway health checks
-const http = require('http');
-const port = process.env.PORT || 3000;
-
-const server = http.createServer((req, res) => {
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      status: 'healthy',
-      bot: 'running',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime()
-    }));
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('SAWAC Telegram Bot is running! 🤖');
-  }
-});
-
-server.listen(port, () => {
-  console.log(`🌐 HTTP server listening on port ${port}`);
-  console.log(`🏥 Health check available at http://localhost:${port}/health`);
-});
-
-// Keep the process alive
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error.message);
-  console.error('Stack:', error.stack);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-}); 
+console.log('📊 Logs will be displayed in console'); 
