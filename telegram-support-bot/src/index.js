@@ -19,16 +19,20 @@ const ADMIN_USER_ID = process.env.ADMIN_USER_ID || 'YOUR_TELEGRAM_USER_ID';
 
 // Ensure data directory exists
 function ensureDataDir() {
-  const dataDir = path.dirname(REQUESTS_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  try {
+    const dataDir = path.dirname(REQUESTS_FILE);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch (error) {
+    console.error('Warning: Could not create data directory:', error.message);
   }
 }
 
 // Load token requests
 function loadRequests() {
-  ensureDataDir();
   try {
+    ensureDataDir();
     if (fs.existsSync(REQUESTS_FILE)) {
       const data = fs.readFileSync(REQUESTS_FILE, 'utf8');
       return JSON.parse(data);
@@ -41,8 +45,8 @@ function loadRequests() {
 
 // Save token requests
 function saveRequests(data) {
-  ensureDataDir();
   try {
+    ensureDataDir();
     fs.writeFileSync(REQUESTS_FILE, JSON.stringify(data, null, 2));
   } catch (error) {
     console.error('Error saving requests:', error);
@@ -56,7 +60,13 @@ function isAdmin(userId) {
 
 // Create bot instance with error handling
 const bot = new TelegramBot(token, { 
-  polling: true,
+  polling: {
+    interval: 300,
+    autoStart: true,
+    params: {
+      timeout: 10
+    }
+  },
   webHook: false
 });
 
