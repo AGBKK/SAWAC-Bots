@@ -2,6 +2,7 @@ require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
+const { Octokit } = require('@octokit/rest');
 
 console.log('🤖 SAWAC Bot starting...');
 
@@ -13,29 +14,37 @@ if (!token) {
   process.exit(1);
 }
 
+// GitHub configuration
+const githubToken = process.env.GITHUB_TOKEN;
+const githubRepo = process.env.GITHUB_REPO || 'AGBKK/sawac-web';
+
+// Initialize GitHub client if token is available
+let octokit = null;
+if (githubToken) {
+  octokit = new Octokit({
+    auth: githubToken
+  });
+  console.log('✅ GitHub integration enabled');
+} else {
+  console.log('⚠️ GITHUB_TOKEN not found - GitHub integration disabled');
+}
+
 // Token management system
 const REQUESTS_FILE = path.join(__dirname, '../data/token-requests.json');
 const ADMIN_USER_ID = process.env.ADMIN_USER_ID || 'YOUR_TELEGRAM_USER_ID';
 
-// GitHub configuration (explicitly set to correct repo)
-const GITHUB_REPO = 'AGBKK/SAWAC-Bots';
-
 // Ensure data directory exists
 function ensureDataDir() {
-  try {
   const dataDir = path.dirname(REQUESTS_FILE);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
-    }
-  } catch (error) {
-    console.error('Warning: Could not create data directory:', error.message);
   }
 }
 
 // Load token requests
 function loadRequests() {
+  ensureDataDir();
   try {
-    ensureDataDir();
     if (fs.existsSync(REQUESTS_FILE)) {
       const data = fs.readFileSync(REQUESTS_FILE, 'utf8');
       return JSON.parse(data);
@@ -48,8 +57,8 @@ function loadRequests() {
 
 // Save token requests
 function saveRequests(data) {
+  ensureDataDir();
   try {
-    ensureDataDir();
     fs.writeFileSync(REQUESTS_FILE, JSON.stringify(data, null, 2));
   } catch (error) {
     console.error('Error saving requests:', error);
@@ -59,6 +68,94 @@ function saveRequests(data) {
 // Check if user is admin
 function isAdmin(userId) {
   return userId.toString() === ADMIN_USER_ID.toString();
+}
+
+// Create GitHub issue from bot report
+async function createGitHubIssue(title, description, labels = ['bug', 'community-testing']) {
+  if (!octokit) {
+    console.log('⚠️ GitHub integration not available');
+    return null;
+  }
+
+  try {
+    const [owner, repo] = githubRepo.split('/');
+    
+    const issue = await octokit.issues.create({
+      owner,
+      repo,
+      title,
+      body: description,
+      labels
+    });
+
+    console.log(`✅ GitHub issue created: #${issue.data.number}`);
+    return issue.data.html_url;
+  } catch (error) {
+    console.error('❌ Error creating GitHub issue:', error.message);
+    return null;
+  }
+}
+
+// AI-powered issue analysis
+async function analyzeIssue(description, userInfo) {
+  // Simple AI analysis based on keywords and patterns
+  const analysis = {
+    severity: 'medium',
+    category: 'general',
+    priority: 'normal',
+    suggestedActions: [],
+    estimatedEffort: 'medium',
+    confidence: 'medium'
+  };
+
+  const desc = description.toLowerCase();
+  
+  // Severity analysis
+  if (desc.includes('crash') || desc.includes('error') || desc.includes('broken') || desc.includes('not working')) {
+    analysis.severity = 'high';
+    analysis.priority = 'urgent';
+  } else if (desc.includes('slow') || desc.includes('performance') || desc.includes('lag')) {
+    analysis.severity = 'medium';
+    analysis.priority = 'high';
+  } else if (desc.includes('ui') || desc.includes('design') || desc.includes('looks')) {
+    analysis.severity = 'low';
+    analysis.priority = 'normal';
+  }
+
+  // Category analysis
+  if (desc.includes('wallet') || desc.includes('connect') || desc.includes('transaction')) {
+    analysis.category = 'wallet-integration';
+    analysis.suggestedActions.push('Check wallet connection logic', 'Verify transaction handling');
+  } else if (desc.includes('mobile') || desc.includes('phone') || desc.includes('responsive')) {
+    analysis.category = 'mobile-ux';
+    analysis.suggestedActions.push('Test on mobile devices', 'Check responsive design');
+  } else if (desc.includes('login') || desc.includes('auth') || desc.includes('sign')) {
+    analysis.category = 'authentication';
+    analysis.suggestedActions.push('Review authentication flow', 'Check session management');
+  } else if (desc.includes('token') || desc.includes('swap') || desc.includes('trade')) {
+    analysis.category = 'trading';
+    analysis.suggestedActions.push('Verify token contract interactions', 'Check swap functionality');
+  }
+
+  // Effort estimation
+  if (analysis.severity === 'high') {
+    analysis.estimatedEffort = 'high';
+  } else if (analysis.category === 'wallet-integration' || analysis.category === 'authentication') {
+    analysis.estimatedEffort = 'high';
+  } else if (analysis.category === 'mobile-ux') {
+    analysis.estimatedEffort = 'medium';
+  } else {
+    analysis.estimatedEffort = 'low';
+  }
+
+  // Confidence based on description length and detail
+  if (description.length > 100 && (desc.includes('steps') || desc.includes('when') || desc.includes('browser'))) {
+    analysis.confidence = 'high';
+  } else if (description.length < 50) {
+    analysis.confidence = 'low';
+  }
+
+  return analysis;
 }
 
 // Create bot instance with error handling
@@ -91,31 +188,16 @@ bot.on('message', async (msg) => {
     
     console.log(`📨 Message from ${from.first_name} (@${from.username || 'no username'}): ${text}`);
     
-        // Handle commands
+    // Handle commands
     if (text.startsWith('/')) {
-      console.log('🔧 Processing command...');
       await handleCommand(msg);
     } else {
-      console.log('💬 Processing natural message...');
-      // Handle regular messages with better error handling
-      try {
-        // Check if this is a new user (first interaction)
-        console.log('📂 Loading user data...');
-        const data = loadRequests();
-        const isNewUser = !data.users[from.id];
-        console.log(`👤 User ${from.first_name} is new: ${isNewUser}`);
-        
-        // Handle regular messages
-        console.log('🔄 Calling handleMessage...');
-        await handleMessage(msg, isNewUser);
-        console.log('✅ handleMessage completed');
-      } catch (error) {
-        console.error('❌ Error in natural message handling:', error.message);
-        console.error('❌ Error stack:', error.stack);
-        // Fallback response if file system operations fail
-        await bot.sendMessage(chatId, 
-          `Hi ${from.first_name}! 👋\n\nI can help you with SAWAC questions. Use /help to see all commands!`);
-      }
+      // Check if this is a new user (first interaction)
+      const data = loadRequests();
+      const isNewUser = !data.users[from.id];
+      
+      // Handle regular messages
+      await handleMessage(msg, isNewUser);
     }
   } catch (error) {
     console.error('❌ Error handling message:', error.message);
@@ -125,15 +207,12 @@ bot.on('message', async (msg) => {
 // Command handler
 async function handleCommand(msg) {
   const chatId = msg.chat.id;
-  const text = msg.text;
+  const text = msg.text.toLowerCase();
   const from = msg.from;
   
   console.log(`🔧 Command received: ${text}`);
   
-  // Extract command without bot username (e.g., /start@botname -> /start)
-  const command = text.split(' ')[0].split('@')[0].toLowerCase();
-  
-  switch (command) {
+  switch (text.split(' ')[0]) {
     case '/start':
       await sendWelcomeMessage(chatId, from);
       break;
@@ -194,6 +273,14 @@ async function handleCommand(msg) {
       await sendPrivacyInfo(chatId);
       break;
       
+    case '/issues':
+      if (isAdmin(from.id)) {
+        await showPendingIssues(chatId);
+      } else {
+        await bot.sendMessage(chatId, '❌ Admin only command.');
+      }
+      break;
+      
     default:
       await bot.sendMessage(chatId, '❓ Unknown command. Use /help to see available commands.');
   }
@@ -201,62 +288,72 @@ async function handleCommand(msg) {
 
 // Welcome message
 async function sendWelcomeMessage(chatId, from) {
-  const welcomeText = `🎉 **Welcome to SAWAC Community Testing!**
+  // Send testing message first
+  const testingMessage = `🧪 **SAWAC Community Testing**
+
+Welcome to SAWAC testing!
+
+**Quick Start:**
+• Type `/test` to access testing dashboard
+• Get test tokens and start testing
+• Earn rewards for quality feedback
+
+**Testing Group:** @SawacCommunity
+**Support:** support@sawac.io`;
+
+  await bot.sendMessage(chatId, testingMessage, { parse_mode: "Markdown" });
+  console.log(`✅ Testing message sent to ${from.first_name}`);
+
+  // Wait 1 second, then send general welcome
+  setTimeout(async () => {
+    const welcomeText = `🎉 **Welcome to SAWAC Community!**
 
 Hi ${from.first_name}! 👋
 
-## 🏆 **TESTING REWARDS PROGRAM**
+## 🚀 **SAWAC DeFi Ecosystem**
 
-### 🪙 **Immediate Rewards:**
-• **1000 SAWAC tokens** + **100 USDT** (testnet for testing)
-• **Free testing environment** - no real money needed
-• **Eligibility for mainnet rewards** - the real value!
+**SAWAC** is a comprehensive DeFi platform featuring:
+• **Advanced Staking** - Multi-reward types with dynamic APY
+• **Smart Rewards** - 8 reward types with tier-based multipliers
+• **Token Vesting** - Professional vesting schedules
+• **Community Airdrops** - Regular token distributions
+• **Presale System** - Tier-based token sales
 
-### 🎁 **Quality Report Rewards:**
-• **Mainnet SAWAC airdrop** for detailed bug reports
-• **"SAWAC Pioneer" NFT** - may unlock governance voting, beta access, staking opportunities
-• **Community leadership** - gain resume-worthy experience as core contributor
-• **Early access** to new features and token launches
-• **Whitelist priority** - guaranteed allocation at best prices, skip gas wars
-• **Exclusive Discord role** - private channels, direct developer access
+## 🎯 **Community Support & Testing**
 
-### 📈 **Reward Tiers:**
-• **Bronze:** 1-2 quality reports = 500 SAWAC mainnet + Community access
-• **Silver:** 3-5 quality reports = 1000 SAWAC + Pioneer NFT + Whitelist priority
-• **Gold:** 5+ quality reports = 2000 SAWAC + VIP status + All benefits
-• **Platinum:** 10+ quality reports = 5000 SAWAC + Early access + Leadership role
+### 📱 **How We Can Help:**
+• **Platform Support** - Get help with staking, rewards, airdrops
+• **Feature Testing** - Test new features and provide feedback
+• **Bug Reports** - Help improve the platform
+• **Community Discussion** - Share ideas and suggestions
 
-## 📋 **What to Test:**
-• Wallet connection & token transactions
-• Mobile experience & UI/UX
-• Performance & edge cases
-• Cross-browser compatibility
+### 🛠️ **Available Commands:**
+• **/help** - Show all available commands
+• **/faq** - Frequently asked questions
+• **/staking** - Staking guide and information
+• **/presale** - How to buy SAWAC tokens
+• **/rewards** - Rewards system information
+• **/contact** - Contact support team
 
-## 📊 **How to Report:**
-• **Quick:** Use /report command
-• **Detailed:** GitHub Issues with screenshots
-• **Quality reports = better rewards!**
+## 🌐 **Platform Access**
 
-## 🔒 **Privacy Protection:**
-• Wallet addresses are processed privately
-• Sensitive data is not stored in group chat
-• Use direct messages for personal info
+**Website:** https://testing.sawac.io
+**Support:** support@sawac.io
+**Community:** @SawacCommunity
 
-## 🚀 **Quick Start:**
-1. Use /setup for wallet instructions
-2. Use /tokens to request test tokens
-3. Start testing at https://sawac.io
-4. Report findings via /report or GitHub
+## 💎 **Community Benefits**
 
-**Testing Group:** [SAWAC Community Testing](https://t.me/SawacTesting)
-**Email Support:** info@sawac.io
+Active community members get:
+• **Early access** to new features
+• **Priority support** from the team
+• **Community recognition** and rewards
+• **Influence** on platform development
 
-**Ready to earn rewards? Let's make SAWAC better together! 🚀**
+**Ready to explore SAWAC? Use /help to see all available commands!** 🚀`;
 
-**💡 Note:** Estimated SAWAC value based on current internal market assumptions; actual price at launch may vary. Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
-
-  await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
+    await bot.sendMessage(chatId, welcomeText, { parse_mode: "Markdown" });
     console.log(`✅ Welcome message sent to ${from.first_name}`);
+  }, 1000);
 }
 
 // Help message
@@ -428,7 +525,6 @@ Once set up, use /tokens to request your test tokens! 🚀`;
 
 // Message handler (non-commands)
 async function handleMessage(msg, isNewUser) {
-  try {
   const chatId = msg.chat.id;
   const text = msg.text;
   const from = msg.from;
@@ -456,14 +552,11 @@ async function handleMessage(msg, isNewUser) {
   
   // Handle natural language responses
   const lowerText = text.toLowerCase();
-  console.log(`🔍 Checking message: "${lowerText}"`);
   
   // Greetings
   if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
-    console.log('👋 Greeting detected, sending response...');
     await bot.sendMessage(chatId, 
       `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\nHow can I help you today? You can ask me about staking, rewards, or use /help for commands.`);
-    console.log(`✅ Greeting response sent to ${from.first_name}`);
     return;
   }
   
@@ -506,12 +599,6 @@ async function handleMessage(msg, isNewUser) {
   await bot.sendMessage(chatId, 
     `Hi ${from.first_name}! 👋\n\nI can help you with:\n• SAWAC platform questions\n• Staking and rewards\n• How to buy tokens\n• Testing features\n• General support\n\n💡 Use /help to see all commands or just ask me anything!`);
   console.log(`✅ Natural response sent to ${from.first_name}`);
-  } catch (error) {
-    console.error('❌ Error in handleMessage:', error.message);
-    // Fallback response
-    await bot.sendMessage(chatId, 
-      `Hi ${from.first_name}! 👋\n\nI can help you with SAWAC questions. Use /help to see all commands!`);
-  }
 }
 
 // Handle wallet address with token management
@@ -645,22 +732,93 @@ Example: \`0x1234567890123456789012345678901234567890\``;
 
 // Handle bug description
 async function handleBugDescription(chatId, from, description) {
+  // Create GitHub issue
+  const issueTitle = `[Community Testing] Bug Report from ${from.first_name}`;
+  const issueDescription = `## Bug Report from Community Testing
+
+**Reporter:** ${from.first_name} (@${from.username || 'no username'})
+**Telegram User ID:** ${from.id}
+**Report Time:** ${new Date().toISOString()}
+
+## Description
+${description}
+
+## Additional Information
+- **Source:** SAWAC Telegram Bot
+- **Priority:** Community Testing
+- **Status:** Needs Review
+
+---
+*This issue was automatically created from the SAWAC Community Testing Telegram Bot.*`;
+
+  const issueUrl = await createGitHubIssue(issueTitle, issueDescription, ['bug', 'community-testing', 'telegram-bot']);
+
   const responseText = `🐛 **Bug Report Received**
 
 **From:** ${from.first_name} (@${from.username || 'no username'})
 **Description:** ${description}
 
 **Next Steps:**
-1. I'll forward this to the development team
+1. ✅ Issue forwarded to development team
 2. You may be contacted for more details
 3. Check [GitHub Issues](https://github.com/AGBKK/sawac-web/issues) for updates
 
-**For detailed reports:** Use GitHub with the issue templates for better tracking.
+${issueUrl ? `**GitHub Issue:** [View Issue](${issueUrl})` : '**Note:** GitHub integration not available'}
 
 Thank you for helping improve SAWAC! 🚀`;
 
   await bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
   console.log(`✅ Bug report received from ${from.first_name}: ${description.substring(0, 50)}...`);
+  
+  // AI analysis of the issue
+  const aiAnalysis = await analyzeIssue(description, from);
+  
+  // Notify admin about bug report with AI analysis
+  if (ADMIN_USER_ID !== 'YOUR_TELEGRAM_USER_ID') {
+    const severityEmoji = {
+      'high': '🔴',
+      'medium': '🟡', 
+      'low': '🟢'
+    };
+    
+    const priorityEmoji = {
+      'urgent': '🚨',
+      'high': '⚡',
+      'normal': '📋'
+    };
+
+    const bugReportNotification = `🤖 **AI-Analyzed Bug Report**
+
+**User:** ${from.first_name} (@${from.username || 'no username'})
+**Time:** ${new Date().toLocaleString()}
+${issueUrl ? `**GitHub Issue:** [View](${issueUrl})` : ''}
+
+**📝 Description:**
+${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
+
+**🔍 AI Analysis:**
+• **Severity:** ${severityEmoji[aiAnalysis.severity]} ${aiAnalysis.severity.toUpperCase()}
+• **Priority:** ${priorityEmoji[aiAnalysis.priority]} ${aiAnalysis.priority.toUpperCase()}
+• **Category:** ${aiAnalysis.category.replace('-', ' ').toUpperCase()}
+• **Effort:** ${aiAnalysis.estimatedEffort.toUpperCase()}
+• **Confidence:** ${aiAnalysis.confidence.toUpperCase()}
+
+**💡 Suggested Actions:**
+${aiAnalysis.suggestedActions.map(action => `• ${action}`).join('\n')}
+
+**📋 Next Steps:**
+• Review the full report in GitHub
+• Contact user if more details needed
+• Update GitHub issue with status
+• Consider priority for development queue`;
+
+    try {
+      await bot.sendMessage(ADMIN_USER_ID, bugReportNotification, { parse_mode: 'Markdown' });
+      console.log(`✅ AI-analyzed notification sent to admin for issue from ${from.first_name}`);
+    } catch (error) {
+      console.error('Failed to notify admin about bug report:', error.message);
+    }
+  }
 }
 
 // Admin functions
@@ -835,8 +993,55 @@ async function sendPrivacyInfo(chatId) {
   console.log('✅ Privacy info sent');
 }
 
+// Show pending issues for admin review
+async function showPendingIssues(chatId) {
+  try {
+    if (!octokit) {
+      await bot.sendMessage(chatId, '⚠️ GitHub integration not available');
+      return;
+    }
+
+    const [owner, repo] = githubRepo.split('/');
+    const issues = await octokit.issues.listForRepo({
+      owner,
+      repo,
+      state: 'open',
+      labels: 'community-testing'
+    });
+
+    if (issues.data.length === 0) {
+      await bot.sendMessage(chatId, '✅ No pending community testing issues.');
+      return;
+    }
+
+    let message = `📋 **Pending Community Issues (${issues.data.length}):**\n\n`;
+    
+    issues.data.slice(0, 10).forEach((issue, index) => {
+      const created = new Date(issue.created_at).toLocaleDateString();
+      const severity = issue.labels.find(l => l.name.includes('high') || l.name.includes('medium') || l.name.includes('low'));
+      const severityText = severity ? severity.name : 'medium';
+      
+      message += `${index + 1}. **${issue.title}**\n`;
+      message += `   📅 Created: ${created}\n`;
+      message += `   🔗 [View Issue](${issue.html_url})\n`;
+      message += `   📝 ${issue.body.substring(0, 100)}${issue.body.length > 100 ? '...' : ''}\n\n`;
+    });
+
+    if (issues.data.length > 10) {
+      message += `... and ${issues.data.length - 10} more issues\n`;
+    }
+
+    message += `\n**Actions:**\n• Review issues in GitHub\n• Update status and labels\n• Contact users for more details`;
+
+    await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Error fetching pending issues:', error);
+    await bot.sendMessage(chatId, '❌ Error fetching pending issues');
+  }
+}
+
 // Bot startup message
-console.log('🚀 SAWAC Telegram Bot is running... (v1.1)');
+console.log('🚀 SAWAC Telegram Bot is running...');
 console.log('📱 Bot is ready to receive messages');
 console.log(`🔑 Bot token: ${token ? '✅ Set' : '❌ Missing'}`);
 console.log('📊 Logs will be displayed in console');
