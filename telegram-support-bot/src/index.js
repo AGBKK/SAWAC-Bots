@@ -95,12 +95,20 @@ bot.on('message', async (msg) => {
     if (text.startsWith('/')) {
       await handleCommand(msg);
     } else {
-      // Check if this is a new user (first interaction)
-      const data = loadRequests();
-      const isNewUser = !data.users[from.id];
-      
-      // Handle regular messages
-      await handleMessage(msg, isNewUser);
+      // Handle regular messages with better error handling
+      try {
+        // Check if this is a new user (first interaction)
+        const data = loadRequests();
+        const isNewUser = !data.users[from.id];
+        
+        // Handle regular messages
+        await handleMessage(msg, isNewUser);
+      } catch (error) {
+        console.error('❌ Error in natural message handling:', error.message);
+        // Fallback response if file system operations fail
+        await bot.sendMessage(chatId, 
+          `Hi ${from.first_name}! 👋\n\nI can help you with SAWAC questions. Use /help to see all commands!`);
+      }
     }
   } catch (error) {
     console.error('❌ Error handling message:', error.message);
@@ -413,11 +421,12 @@ Once set up, use /tokens to request your test tokens! 🚀`;
 
 // Message handler (non-commands)
 async function handleMessage(msg, isNewUser) {
-  const chatId = msg.chat.id;
-  const text = msg.text;
-  const from = msg.from;
-  
-  console.log(`💬 Regular message from ${from.first_name}: ${text}`);
+  try {
+    const chatId = msg.chat.id;
+    const text = msg.text;
+    const from = msg.from;
+    
+    console.log(`💬 Regular message from ${from.first_name}: ${text}`);
   
   // Check if this looks like a wallet address
   if (text && text.startsWith('0x') && text.length === 42) {
@@ -488,6 +497,12 @@ async function handleMessage(msg, isNewUser) {
   await bot.sendMessage(chatId, 
     `Hi ${from.first_name}! 👋\n\nI can help you with:\n• SAWAC platform questions\n• Staking and rewards\n• How to buy tokens\n• Testing features\n• General support\n\n💡 Use /help to see all commands or just ask me anything!`);
   console.log(`✅ Natural response sent to ${from.first_name}`);
+  } catch (error) {
+    console.error('❌ Error in handleMessage:', error.message);
+    // Fallback response
+    await bot.sendMessage(chatId, 
+      `Hi ${from.first_name}! 👋\n\nI can help you with SAWAC questions. Use /help to see all commands!`);
+  }
 }
 
 // Handle wallet address with token management
