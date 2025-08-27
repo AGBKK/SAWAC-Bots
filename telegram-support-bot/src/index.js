@@ -207,12 +207,15 @@ bot.on('message', async (msg) => {
 // Command handler
 async function handleCommand(msg) {
   const chatId = msg.chat.id;
-  const text = msg.text.toLowerCase();
+  const text = msg.text;
   const from = msg.from;
   
   console.log(`🔧 Command received: ${text}`);
   
-  switch (text.split(' ')[0]) {
+  // Extract command without bot username (e.g., /start@botname -> /start)
+  const command = text.split(' ')[0].split('@')[0].toLowerCase();
+  
+  switch (command) {
     case '/start':
       await sendWelcomeMessage(chatId, from);
       break;
@@ -599,6 +602,17 @@ async function handleMessage(msg, isNewUser) {
   await bot.sendMessage(chatId, 
     `Hi ${from.first_name}! 👋\n\nI can help you with:\n• SAWAC platform questions\n• Staking and rewards\n• How to buy tokens\n• Testing features\n• General support\n\n💡 Use /help to see all commands or just ask me anything!`);
   console.log(`✅ Natural response sent to ${from.first_name}`);
+
+  // Handle greetings and common messages
+  const lowerText = text.toLowerCase();
+  if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+    await bot.sendMessage(chatId, 
+      `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\n💡 Use /help to see available commands or /tokens to request test tokens!`);
+    console.log(`✅ Greeting response sent to ${from.first_name}`);
+    return;
+  }
+  
+  // Default response for other messages
 }
 
 // Handle wallet address with token management
