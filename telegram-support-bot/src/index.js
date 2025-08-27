@@ -827,7 +827,7 @@ async function sendPrivacyInfo(chatId) {
 }
 
 // Bot startup message
-console.log('🚀 SAWAC Telegram Bot is running...');
+console.log('🚀 SAWAC Telegram Bot is running... (v1.1)');
 console.log('📱 Bot is ready to receive messages');
 console.log(`🔑 Bot token: ${token ? '✅ Set' : '❌ Missing'}`);
 console.log('📊 Logs will be displayed in console');
