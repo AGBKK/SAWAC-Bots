@@ -23,9 +23,9 @@ const GITHUB_REPO = 'AGBKK/SAWAC-Bots';
 // Ensure data directory exists
 function ensureDataDir() {
   try {
-    const dataDir = path.dirname(REQUESTS_FILE);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+  const dataDir = path.dirname(REQUESTS_FILE);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
     }
   } catch (error) {
     console.error('Warning: Could not create data directory:', error.message);
@@ -91,20 +91,27 @@ bot.on('message', async (msg) => {
     
     console.log(`📨 Message from ${from.first_name} (@${from.username || 'no username'}): ${text}`);
     
-    // Handle commands
+        // Handle commands
     if (text.startsWith('/')) {
+      console.log('🔧 Processing command...');
       await handleCommand(msg);
     } else {
+      console.log('💬 Processing natural message...');
       // Handle regular messages with better error handling
       try {
         // Check if this is a new user (first interaction)
+        console.log('📂 Loading user data...');
         const data = loadRequests();
         const isNewUser = !data.users[from.id];
+        console.log(`👤 User ${from.first_name} is new: ${isNewUser}`);
         
         // Handle regular messages
+        console.log('🔄 Calling handleMessage...');
         await handleMessage(msg, isNewUser);
+        console.log('✅ handleMessage completed');
       } catch (error) {
         console.error('❌ Error in natural message handling:', error.message);
+        console.error('❌ Error stack:', error.stack);
         // Fallback response if file system operations fail
         await bot.sendMessage(chatId, 
           `Hi ${from.first_name}! 👋\n\nI can help you with SAWAC questions. Use /help to see all commands!`);
@@ -249,7 +256,7 @@ Hi ${from.first_name}! 👋
 **💡 Note:** Estimated SAWAC value based on current internal market assumptions; actual price at launch may vary. Early testers get tokens at the lowest price point with maximum upside potential as SAWAC grows!`;
 
   await bot.sendMessage(chatId, welcomeText, { parse_mode: 'Markdown' });
-  console.log(`✅ Welcome message sent to ${from.first_name}`);
+    console.log(`✅ Welcome message sent to ${from.first_name}`);
 }
 
 // Help message
@@ -422,11 +429,11 @@ Once set up, use /tokens to request your test tokens! 🚀`;
 // Message handler (non-commands)
 async function handleMessage(msg, isNewUser) {
   try {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-    const from = msg.from;
-    
-    console.log(`💬 Regular message from ${from.first_name}: ${text}`);
+  const chatId = msg.chat.id;
+  const text = msg.text;
+  const from = msg.from;
+  
+  console.log(`💬 Regular message from ${from.first_name}: ${text}`);
   
   // Check if this looks like a wallet address
   if (text && text.startsWith('0x') && text.length === 42) {
@@ -449,9 +456,11 @@ async function handleMessage(msg, isNewUser) {
   
   // Handle natural language responses
   const lowerText = text.toLowerCase();
+  console.log(`🔍 Checking message: "${lowerText}"`);
   
   // Greetings
   if (lowerText.includes("hi") || lowerText.includes("hello") || lowerText.includes("hey")) {
+    console.log('👋 Greeting detected, sending response...');
     await bot.sendMessage(chatId, 
       `Hi ${from.first_name}! 👋 Welcome to SAWAC Community!\n\nHow can I help you today? You can ask me about staking, rewards, or use /help for commands.`);
     console.log(`✅ Greeting response sent to ${from.first_name}`);
